@@ -9,11 +9,11 @@ inputs:
   amlogic_openwrt:
     description: 'Choose Amlogic SoC.'
     required: false
-    default: 's905d_s905x3'
+    default: 's905x3'
   amlogic_kernel:
     description: 'Choose kernel.'
     required: false
-    default: '5.10.31.TF_5.4.113'
+    default: '5.4.134'
   amlogic_size:
     description: 'Choose root size.'
     required: false
