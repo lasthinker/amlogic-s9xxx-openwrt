@@ -19,7 +19,7 @@ on:
     - cron: '0 17 * * *'
 
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_URL: https://github.com/lasthinker/lede
   REPO_BRANCH: master
   FEEDS_CONF: router-config/lede-master/feeds.conf.default
   CONFIG_FILE: router-config/lede-master/.config
