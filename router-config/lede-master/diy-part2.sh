@@ -31,7 +31,7 @@ sed -i 's/TARGET_rockchip/TARGET_rockchip\|\|TARGET_armvirt/g' package/lean/auto
 # ------------------------------- Other started -------------------------------
 #
 # Add luci-app-amlogic
-# svn co https://github.com/ophub/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
+svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
 
 # Add luci-app-passwall
 # svn co https://github.com/xiaorouji/openwrt-passwall/trunk package/openwrt-passwall
