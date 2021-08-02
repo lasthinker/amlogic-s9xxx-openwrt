@@ -59,6 +59,3 @@ svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic pac
 # git apply ../router-config/patches/{0001*,0002*}.patch --directory=feeds/luci
 #
 # ------------------------------- Other ends -------------------------------
-
-# Add AdGuardHome
-svn co https://github.com/rufengsuixing/luci-app-adguardhome/trunk package/lean/luci-app-adguardhome
