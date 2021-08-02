@@ -635,7 +635,6 @@ fi
 
 # Check the new version on the kernel library
 if [[ -n "${auto_kernel}" && "${auto_kernel}" == "true" ]]; then
-
     TMP_ARR_KERNELS=()
     SERVER_KERNEL_URL=${kernel_library#*com\/}
     SERVER_KERNEL_URL=${SERVER_KERNEL_URL//trunk/contents}
@@ -655,22 +654,32 @@ if [[ -n "${auto_kernel}" && "${auto_kernel}" == "true" ]]; then
         else
             TMP_ARR_KERNELS[${i}]="${KERNEL_VAR}"
         fi
-        echo -e "(${i}) [ ${TMP_ARR_KERNELS[$i]} ] is latest kernel."
-
-        # Auto download from kernel library
-        if [ ! -d "${kernel_path}/${TMP_ARR_KERNELS[$i]}" ]; then
-            echo -e "(${i}) [ ${TMP_ARR_KERNELS[$i]} ] Kernel loading from [ ${kernel_library}/${TMP_ARR_KERNELS[$i]} ] \n"
-            svn checkout ${kernel_library}/${TMP_ARR_KERNELS[$i]} ${kernel_path}/${TMP_ARR_KERNELS[$i]} >/dev/null
-            rm -rf ${kernel_path}/${TMP_ARR_KERNELS[$i]}/.svn >/dev/null && sync
-        fi
+        echo -e "(${i}) [ ${TMP_ARR_KERNELS[$i]} ] is latest kernel. \n"
 
         let i++
     done
+
     unset kernels
     kernels=${TMP_ARR_KERNELS[*]}
-
 fi
 
+# Synchronization related kernel
+i=1
+for KERNEL_VAR in ${kernels[*]}; do
+    if [ ! -d "${kernel_path}/${KERNEL_VAR}" ]; then
+        echo -e "(${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${kernel_library}/${KERNEL_VAR} ]"
+        svn checkout ${kernel_library}/${KERNEL_VAR} ${kernel_path}/${KERNEL_VAR} >/dev/null
+        rm -rf ${kernel_path}/${KERNEL_VAR}/.svn >/dev/null && sync
+    else
+        echo -e "(${i}) [ ${KERNEL_VAR} ] Kernel is in the local directory."
+    fi
+
+    let i++
+done
+
+echo -e "Ready, start packaging... \n"
+
+# Start loop compilation
 k=1
 for b in ${build_openwrt[*]}; do
 
