@@ -1,11 +1,11 @@
-name: 'Use ophub script to package Armvirt as OpenWrt'
-author: 'ophub'
+name: 'Use lasthinker script to package Armvirt as OpenWrt'
+author: 'lasthinker'
 description: 'Package Armvirt as OpenWrt. Support Amlogic S9xxx STB.'
 inputs:
   mode:
     description: 'Choose script.'
     required: false
-    default: 'ophub'
+    default: 'lasthinker'
   amlogic_openwrt:
     description: 'Choose Amlogic SoC.'
     required: false
@@ -33,7 +33,7 @@ runs:
     - shell: bash
       run: |
         cd ${GITHUB_ACTION_PATH}
-        echo -e "ophub package actions path: ${PWD}"
+        echo -e "lasthinker package actions path: ${PWD}"
         [ -z "${{ inputs.armvirt64_path }}" ] && echo -e "The [ armvirt64_path ] variable must be specified." && exit 1
         [ -d openwrt-armvirt ] || sudo mkdir -p openwrt-armvirt
         sudo cp -f ${GITHUB_WORKSPACE}/${{ inputs.armvirt64_path }} openwrt-armvirt && sync

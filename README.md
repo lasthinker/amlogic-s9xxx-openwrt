@@ -2,9 +2,9 @@
 
 Support `github.com One-stop compilation`, `Use GitHub Action to packaging`, `Use github.com Releases rootfs file to packaging`, `Local packaging`. including OpenWrt firmware install to EMMC and update related functions. Support Amlogic S9xxx STB are ***`S905x3, S905x2, S922x, S905x, S905d, s912`***, etc. such as ***`Phicomm-N1, Octopus-Planet, X96-Max+, HK1-Box, H96-Max-X3, Belink GT-King, Belink GT-King Pro, UGOOS AM6 Plus, Fiberhome HG680P, ZTE B860H`***, etc.
 
-The latest version of the OpenWrt firmware can be downloaded in [Releases](https://github.com/ophub/amlogic-s9xxx-openwrt/releases).
+The latest version of the OpenWrt firmware can be downloaded in [Releases](https://github.com/lasthinker/amlogic-s9xxx-openwrt/releases).
 
-This OpenWrt firmware is packaged using ***`Flippy's`*** [Amlogic S9xxx Kernel](https://github.com/ophub/flippy-kernel/tree/main/library) for OpenWrt, and the Install and update scripts, etc. Welcome to use `Fork` for [personalized OpenWrt firmware configuration](https://github.com/ophub/amlogic-s9xxx-openwrt/blob/main/router-config/README.md). If you like it, Please click the `Star`.
+This OpenWrt firmware is packaged using ***`Flippy's`*** [Amlogic S9xxx Kernel](https://github.com/lasthinker/flippy-kernel/tree/main/library) for OpenWrt, and the Install and update scripts, etc. Welcome to use `Fork` for [personalized OpenWrt firmware configuration](https://github.com/lasthinker/amlogic-s9xxx-openwrt/blob/main/router-config/README.md). If you like it, Please click the `Star`.
 
 ## OpenWrt Firmware instructions
 
@@ -23,13 +23,13 @@ Choose the corresponding firmware according to your STB. Then write the IMG file
 
 - ### Install OpenWrt
 
-Log in to the default IP: 192.168.1.1 → `Login in to openwrt` → `system menu` → `Amlogic Service` → `Install OpenWrt`
+Log in to the default IP: 192.168.2.1 → `Login in to openwrt` → `system menu` → `Amlogic Service` → `Install OpenWrt`
 
 - ### Update OpenWrt
 
-Log in to the default IP: 192.168.1.1 →  `Login in to openwrt` → `system menu` → `Amlogic Service` → `Update OpenWrt`
+Log in to the default IP: 192.168.2.1 →  `Login in to openwrt` → `system menu` → `Amlogic Service` → `Update OpenWrt`
 
-Tip: Functions such as install/update are provided by [luci-app-amlogic](https://github.com/ophub/luci-app-amlogic) to provide visual operation support. Also supports [command operations](https://github.com/ophub/amlogic-s9xxx-openwrt/blob/main/router-config/README.md#8-install-the-firmware).
+Tip: Functions such as install/update are provided by [luci-app-amlogic](https://github.com/lasthinker/luci-app-amlogic) to provide visual operation support. Also supports [command operations](https://github.com/lasthinker/amlogic-s9xxx-openwrt/blob/main/router-config/README.md#8-install-the-firmware).
 
 ## Compilation and packaging method
 
@@ -39,8 +39,8 @@ Provide multiple ways to generate the OpenWrt firmware you need. Please choose o
 
 You can modify the configuration file in the `router-config` directory and `.yml` file, customize the OpenWrt firmware, and complete the packaging online through `Actions`, and complete all the compilation of OpenWrt firmware in github.com One-stop.
 
-1. Personalized plug-in configuration in [router-config](https://github.com/ophub/amlogic-s9xxx-openwrt/tree/main/router-config) directory. Workflows configuration in [.yml](https://github.com/ophub/amlogic-s9xxx-openwrt/blob/main/.github/workflows/build-openwrt-lede.yml) file.
-2. Select ***`Build OpenWrt`*** on the [Action](https://github.com/ophub/amlogic-s9xxx-openwrt/actions) page. Click the ***`Run workflow`*** button.
+1. Personalized plug-in configuration in [router-config](https://github.com/lasthinker/amlogic-s9xxx-openwrt/tree/main/router-config) directory. Workflows configuration in [.yml](https://github.com/lasthinker/amlogic-s9xxx-openwrt/blob/main/.github/workflows/build-openwrt-lede.yml) file.
+2. Select ***`Build OpenWrt`*** on the [Action](https://github.com/lasthinker/amlogic-s9xxx-openwrt/actions) page. Click the ***`Run workflow`*** button.
 
 ```yaml
 - name: Build OpenWrt firmware
@@ -59,13 +59,13 @@ The output variable ${{ env.PACKAGED_OUTPUTPATH }} is the path where the package
 
 - ### Use GitHub Action to packaging instructions
 
-[For more instructions please see: .yml example](https://github.com/ophub/op/blob/main/.github/workflows/build-openwrt-s9xxx.yml)
+[For more instructions please see: .yml example](https://github.com/lasthinker/op/blob/main/.github/workflows/build-openwrt-s9xxx.yml)
 
 In your .github/workflows/.yml file, after completing the compilation of Subtarget is ARMv8, add the following online packaging code:
 
 ```yaml
 - name: Package Armvirt as OpenWrt
-  uses: ophub/amlogic-s9xxx-openwrt@main
+  uses: lasthinker/amlogic-s9xxx-openwrt@main
   with:
     armvirt64_path: openwrt/bin/targets/*/*/*.tar.gz
     amlogic_openwrt: s905x3_s905x2_s905x_s905d_s922x_s912
@@ -80,7 +80,7 @@ In your .github/workflows/.yml file, after completing the compilation of Subtarg
 |------------------------|------------------------|---------------------------------------------------------------|
 | armvirt64_path         | no                     | Set the file path of `openwrt-armvirt-64-default-rootfs.tar.gz` , Use the path of the file in the current workflow such as `openwrt/bin/targets/*/*/*.tar.gz` . |
 | amlogic_openwrt        | s905d_s905x3           | Set the `SoC` of the packaging box, the default `all` packs all boxes, you can specify a single box such as `s905x3`, you can choose multiple boxes to use `_` connection such as `s905x3_s905d` . SOC code of each box is: `s905` `s905d` `s905x2` `s905x3` `s912` `s922x` |
-| amlogic_kernel         | 5.13.2_5.4.132         | Set the kernel version，Ophub's [kernel](https://github.com/ophub/flippy-kernel/tree/main/library) library contains many original kernels of `Flippy`, you can view and choose to specify. |
+| amlogic_kernel         | 5.13.2_5.4.132         | Set the kernel version，lasthinker's [kernel](https://github.com/lasthinker/flippy-kernel/tree/main/library) library contains many original kernels of `Flippy`, you can view and choose to specify. |
 | auto_kernel            | true                   | Set whether to automatically adopt the latest version of the kernel of the same series. When it is `true`, it will automatically find in the kernel library whether there is an updated version of the kernel specified in `amlogic_kernel` such as 5.13.2. If there is the latest version of 5.13 same series, such as 5.13.3 and later, it will automatically Replace with the latest version. When set to `false`, the specified version of the kernel will be compiled. Default value: `true` |
 | amlogic_size           | 1024                   | Set the size of the firmware ROOT partition |
 
@@ -119,12 +119,12 @@ In your .github/workflows/.yml file, after completing the compilation of Subtarg
 
 - ### Use github.com Releases rootfs file to packaging
 
-If there is an `openwrt-armvirt-64-default-rootfs.tar.gz` file in a [Releases](https://github.com/ophub/amlogic-s9xxx-openwrt/releases) in your repository, you can use this file to directly package the required firmware.
+If there is an `openwrt-armvirt-64-default-rootfs.tar.gz` file in a [Releases](https://github.com/lasthinker/amlogic-s9xxx-openwrt/releases) in your repository, you can use this file to directly package the required firmware.
 
 - `openwrt_s9xxx_.*` is Prefix the `tag_name` in the Release.
-- `openwrt-armvirt-64-default-rootfs.tar.gz` is the firmware you are going to package, please refer to [router-config](https://github.com/ophub/amlogic-s9xxx-openwrt/tree/main/router-config) for compilation method.
+- `openwrt-armvirt-64-default-rootfs.tar.gz` is the firmware you are going to package, please refer to [router-config](https://github.com/lasthinker/amlogic-s9xxx-openwrt/tree/main/router-config) for compilation method.
 
-[For more instructions please see: use-releases-file-to-packaging.yml](https://github.com/ophub/amlogic-s9xxx-openwrt/blob/main/.github/workflows/use-releases-file-to-packaging.yml)
+[For more instructions please see: use-releases-file-to-packaging.yml](https://github.com/lasthinker/amlogic-s9xxx-openwrt/blob/main/.github/workflows/use-releases-file-to-packaging.yml)
 
 ```yaml
 - name: Build OpenWrt firmware
@@ -140,7 +140,7 @@ If there is an `openwrt-armvirt-64-default-rootfs.tar.gz` file in a [Releases](h
     echo "::set-output name=status::success"
 ```
 
-This function is suitable for the needs of replacing the [kernel](https://github.com/ophub/flippy-kernel/tree/main/library) packaging and packaging the OpenWrt firmware of the specified [amlogic-dtb](https://github.com/ophub/amlogic-s9xxx-openwrt/tree/main/amlogic-s9xxx/amlogic-dtb) separately. As long as you have the `openwrt-armvirt-64-default-rootfs.tar.gz` file in the [Releases](https://github.com/ophub/amlogic-s9xxx-openwrt/releases) of your repository, you can package the OpenWrt firmware you want at any time, which is efficient and convenient.
+This function is suitable for the needs of replacing the [kernel](https://github.com/lasthinker/flippy-kernel/tree/main/library) packaging and packaging the OpenWrt firmware of the specified [amlogic-dtb](https://github.com/lasthinker/amlogic-s9xxx-openwrt/tree/main/amlogic-s9xxx/amlogic-dtb) separately. As long as you have the `openwrt-armvirt-64-default-rootfs.tar.gz` file in the [Releases](https://github.com/lasthinker/amlogic-s9xxx-openwrt/releases) of your repository, you can package the OpenWrt firmware you want at any time, which is efficient and convenient.
 
 - ### Local packaging instructions
 
@@ -150,7 +150,7 @@ sudo apt-get update -y
 sudo apt-get full-upgrade -y
 sudo apt-get install -y build-essential tar xz-utils unzip bzip2 p7zip p7zip-full btrfs-progs dosfstools uuid-runtime mount util-linux parted git curl wget vim
 ```
-2. Clone the warehouse to the local. `git clone --depth 1 https://github.com/ophub/amlogic-s9xxx-openwrt.git`
+2. Clone the warehouse to the local. `git clone --depth 1 https://github.com/lasthinker/amlogic-s9xxx-openwrt.git`
 3. Create a `openwrt-armvirt` folder, and upload the OpenWrt firmware of the ARM kernel ( Eg: `openwrt-armvirt-64-default-rootfs.tar.gz` ) to this `~/amlogic-s9xxx-openwrt/openwrt-armvirt` directory.
 4. Name the kernel package according to the corresponding version number, such as `5.13.2`, and put it into the `~/amlogic-s9xxx-openwrt/amlogic-s9xxx/amlogic-kernel` directory.
 5. Enter the `~/amlogic-s9xxx-openwrt` root directory. And run Eg: `sudo ./make` to make selection settings. The generated OpenWrt firmware is in the `out` directory under the root directory.
@@ -173,7 +173,7 @@ sudo apt-get install -y build-essential tar xz-utils unzip bzip2 p7zip p7zip-ful
 | ---- | ---- | ---- |
 | -d | Defaults | Compile all cores and all firmware types. |
 | -b | Build | Specify the Build firmware type. Write the build firmware name individually, such as `-b s905x3` . Multiple firmware use `_` connect such as `-b s905x3_s905d` . You can use these codes: `s905x3`, `s905x2`, `s905x`, `s905d`, `s922x`, `s912` |
-| -k | Kernel | Specify the kernel type. Write the kernel name individually such as `-k 5.4.132` . Multiple cores use `_` connection such as `-k 5.13.2_5.4.132` [kernel](https://github.com/ophub/flippy-kernel/tree/main/library). |
+| -k | Kernel | Specify the kernel type. Write the kernel name individually such as `-k 5.4.132` . Multiple cores use `_` connection such as `-k 5.13.2_5.4.132` [kernel](https://github.com/lasthinker/flippy-kernel/tree/main/library). |
 | -a | AutoKernel | Set whether to automatically adopt the latest version of the kernel of the same series. When it is `true`, it will automatically find in the kernel library whether there is an updated version of the kernel specified in `-k` such as 5.13.2. If there is the latest version of 5.13 same series, such as 5.13.3 and later, it will automatically Replace with the latest version. When set to `false`, the specified version of the kernel will be compiled. Default value: `true` |
 | -s | Size | Specify the size of the root partition in MB. The default is 1024, and the specified size must be greater than 256. Such as `-s 1024` |
 | -h | help | View full documentation. |
@@ -187,13 +187,13 @@ sudo apt-get install -y build-essential tar xz-utils unzip bzip2 p7zip p7zip-ful
 | Target Profile | Default |
 | Target Images | tar.gz |
 
-[For more instructions please see: router-config](https://github.com/ophub/amlogic-s9xxx-openwrt/tree/main/router-config)
+[For more instructions please see: router-config](https://github.com/lasthinker/amlogic-s9xxx-openwrt/tree/main/router-config)
 
 ## Firmware information
 
 | Name | Value |
 | ---- | ---- |
-| Default IP | 192.168.1.1 |
+| Default IP | 192.168.2.1 |
 | Default username | root |
 | Default password | password |
 | Default WIFI name | OpenWrt |
@@ -217,5 +217,5 @@ iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE      #If the interface is
 
 ## License
 
-[LICENSE](https://github.com/ophub/op/blob/main/LICENSE) © OPHUB
+[LICENSE](https://github.com/lasthinker/op/blob/main/LICENSE) © lasthinker
 
