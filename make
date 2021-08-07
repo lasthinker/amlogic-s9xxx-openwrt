@@ -250,8 +250,29 @@ refactor_files() {
     [ -f etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > etc/modules.d/usb-net-asix-ax88179
 
     # Add cpustat
-    cpustat_file=${configfiles_path}/patches/cpustat/cpustat.py
-    [ -f ${cpustat_file} ] && cp -f ${cpustat_file} usr/bin/cpustat && chmod +x usr/bin/cpustat >/dev/null 2>&1
+    cpustat_file=${configfiles_path}/patches/cpustat
+    if [[ -d "${cpustat_file}" && -x "bin/bash" ]]; then
+        cp -f ${cpustat_file}/cpustat usr/bin/cpustat && chmod +x usr/bin/cpustat >/dev/null 2>&1
+        cp -f ${cpustat_file}/getcpu bin/getcpu && chmod +x bin/getcpu >/dev/null 2>&1
+        cp -f ${cpustat_file}/30-sysinfo.sh etc/profile.d/30-sysinfo.sh >/dev/null 2>&1
+        sed -i "s/\/bin\/ash/\/bin\/bash/" etc/passwd >/dev/null 2>&1
+        sed -i "s/\/bin\/ash/\/bin\/bash/" usr/libexec/login.sh >/dev/null 2>&1
+        sync
+    fi
+
+    # Modify the cpu mode to schedutil
+    if [[ -f "etc/config/cpufreq" ]];then
+        sed -i "s/ondemand/schedutil/" etc/config/cpufreq
+    fi
+
+    # Add balethirq
+    balethirq_file=${configfiles_path}/patches/balethirq
+    if [ -d "${balethirq_file}" ];then
+        cp -f ${balethirq_file}/balethirq.pl usr/sbin/balethirq.pl && chmod +x usr/sbin/balethirq.pl >/dev/null 2>&1
+        sed -i "/exit/i\/usr/sbin/balethirq.pl" etc/rc.local >/dev/null 2>&1
+        cp -f ${balethirq_file}/balance_irq etc/config/balance_irq >/dev/null 2>&1
+        sync
+    fi
 
     # Synchronous installation of update and other command scripts
     svn checkout ${command_file} usr/bin >/dev/null && sync && chmod +x usr/bin/openwrt-*
