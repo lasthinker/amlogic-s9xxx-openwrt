@@ -44,6 +44,9 @@ svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic pac
 # svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/openwrt-ssrplus
 # rm -rf package/openwrt-ssrplus/luci-app-ssr-plus/po/zh_Hans 2>/dev/null
 
+# Add p7zip
+svn co https://github.com/hubutui/p7zip-lede/trunk package/p7zip
+
 # coolsnowwolf default software package replaced with Lienol related software package
 # rm -rf feeds/packages/utils/{containerd,libnetwork,runc,tini}
 # svn co https://github.com/Lienol/openwrt-packages/trunk/utils/{containerd,libnetwork,runc,tini} feeds/packages/utils
@@ -59,3 +62,4 @@ svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic pac
 # git apply ../router-config/patches/{0001*,0002*}.patch --directory=feeds/luci
 #
 # ------------------------------- Other ends -------------------------------
+
