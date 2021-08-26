@@ -38,7 +38,7 @@ svn co https://github.com/hubutui/p7zip-lede/trunk package/p7zip
 
 # Add luci-theme-argon
 rm -rf package/lean/luci-theme-argon
-git clone https://github.com/jerrykuku/luci-theme-argon.git package/lean/luci-theme-argon
+git clone -b 18.06  https://github.com/jerrykuku/luci-theme-argon.git package/lean/luci-theme-argon
 svn co https://github.com/jerrykuku/luci-app-argon-config/trunk package/luci-app-argon-config
 
 # coolsnowwolf default software package replaced with Lienol related software package
