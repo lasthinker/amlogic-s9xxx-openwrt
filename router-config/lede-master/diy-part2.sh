@@ -8,8 +8,8 @@
 
 # ------------------------------- Main source started -------------------------------
 #
-# Modify default theme（FROM uci-theme-bootstrap CHANGE TO luci-theme-argon）
-sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' ./feeds/luci/collections/luci/Makefile
+# Modify default theme（FROM uci-theme-bootstrap CHANGE TO luci-theme-material）
+sed -i 's/luci-theme-bootstrap/luci-theme-material/g' ./feeds/luci/collections/luci/Makefile
 
 # Modify some code adaptation
 sed -i 's/LUCI_DEPENDS.*/LUCI_DEPENDS:=\@\(arm\|\|aarch64\)/g' package/lean/luci-app-cpufreq/Makefile
@@ -35,11 +35,6 @@ svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic pac
 
 # Add p7zip
 svn co https://github.com/hubutui/p7zip-lede/trunk package/p7zip
-
-# Add luci-theme-argon
-rm -rf package/lean/luci-theme-argon
-git clone -b 18.06  https://github.com/jerrykuku/luci-theme-argon.git package/lean/luci-theme-argon
-svn co https://github.com/jerrykuku/luci-app-argon-config/trunk package/luci-app-argon-config
 
 # coolsnowwolf default software package replaced with Lienol related software package
 # rm -rf feeds/packages/utils/{containerd,libnetwork,runc,tini}
