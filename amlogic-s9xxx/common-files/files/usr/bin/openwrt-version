@@ -1,7 +1,5 @@
 #!/bin/bash
 #======================================================================
-# https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Record the version information of OpenWrt
 # Function: Output the version information of OpenWrt as needed
 # Copyright (C) 2020 https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #======================================================================

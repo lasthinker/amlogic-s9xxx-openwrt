@@ -1,8 +1,5 @@
 #!/bin/bash
 #===========================================================================================
-# https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Extract/Replace the kernel for Amlogic S9xxx OpenWrt
-#
 # Note: Please grant execution permission before using the script: chmod +x openwrt-kernel
 # Kernel extraction command: sudo ./openwrt-kernel -e
 # Kernel replace command: openwrt-kernel -r

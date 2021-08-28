@@ -1,7 +1,5 @@
 #!/bin/bash
 #======================================================================
-# https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Backup and restore config files in the /etc directory
 # Function: Use Flippy's retention config update strategy
 # Copyright (C) 2020 Flippy
 # Copyright (C) 2020 https://github.com/lasthinker/amlogic-s9xxx-openwrt
@@ -63,12 +61,8 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 
 if dmesg | grep 'meson' >/dev/null 2>&1; then
     PLATFORM="amlogic"
-elif dmesg | grep 'rockchip' >/dev/null 2>&1; then
-    PLATFORM="rockchip"
-elif dmesg | grep 'sun50i-h6' >/dev/null 2>&1; then
-    PLATFORM="allwinner"
 else
-    echo "Unknown platform, only support amlogic or rockchip or allwinner h6!"
+    echo "Unknown platform, only support amlogic!"
     exit 1
 fi
 
