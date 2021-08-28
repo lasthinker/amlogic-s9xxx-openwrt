@@ -219,7 +219,7 @@ Now the longest storage period of `Actions in GitHub is 90 days`, `Releases is p
     body: |
       This is OpenWrt firmware for Amlogic S9xxx STB
       * Firmware information
-      Default IP: 192.168.1.1
+      Default IP: 192.168.2.1
       Default username: root
       Default password: password
       Default WIFI name: OpenWrt
@@ -287,11 +287,11 @@ Choose the corresponding firmware according to your STB. Then write the IMG file
 
 ### 8.2 Install using the operation panel
 
-`Log in to the default IP: 192.168.1.1` → `Login in to openwrt` → `system menu` → `Amlogic Service` → `Install OpenWrt`
+`Log in to the default IP: 192.168.2.1` → `Login in to openwrt` → `system menu` → `Amlogic Service` → `Install OpenWrt`
 
 ### 8.3 Install using script commands
 
-`Log in to the default IP: 192.168.1.1` → `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
+`Log in to the default IP: 192.168.2.1` → `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
 
 ```yaml
 openwrt-install
@@ -327,7 +327,7 @@ If there is only one `update file` in the ***`/mnt/mmcblk*p4/`*** and ***`/tmp/u
 
 ### 9.3 Replace the kernel to update
 
-- Log in to the default IP: 192.168.1.1 →  `Login in to openwrt` → `system menu` → `file transfer` → Upload kernel package ***`(There are 3 files：boot-*，dtb-amlogic-*，modules-*)`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input the Kernel replacement command: 
+- Log in to the default IP: 192.168.2.1 →  `Login in to openwrt` → `system menu` → `file transfer` → Upload kernel package ***`(There are 3 files：boot-*，dtb-amlogic-*，modules-*)`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input the Kernel replacement command: 
 
 ```yaml
 openwrt-kernel
@@ -544,5 +544,5 @@ You need to install a resistor on the TTL: [X96 Max Plus's V4.0 Motherboard](htt
 - Open the developer mode: Settings → About this machine → Version number (for example: X96max plus...), click on the version number for 7 times in quick succession, and you will see that the developer mode is turned on.
 - Turn on USB debugging: After restarting, enter Settings → System → Advanced options → Developer options again (after entering, confirm that the status is on, and the USB debugging status in the list is also on)
 - Boot from USB hard disk: Unplug the power → insert the USB hard disk → insert the thimble into the AV port (top reset button) → insert the power → release the thimble of the av port → the system will boot from the USB hard disk.
-- Log in to the system: Connect the computer and the s9xxx box with a network interface → turn off the wireless wifi on the computer → enable the wired connection → manually set the computer ip to the same network segment ip as openwrt, ipaddr such as `192.168.1.2`. The netmask is `255.255.255.0`, and others are not filled in. You can log in to the openwrt system from the browser, Enter OpwnWrt's IP Address: `192.168.1.1`, Account: `root`, Password: `password`, and then log in OpenWrt system.
+- Log in to the system: Connect the computer and the s9xxx box with a network interface → turn off the wireless wifi on the computer → enable the wired connection → manually set the computer ip to the same network segment ip as openwrt, ipaddr such as `192.168.2.2`. The netmask is `255.255.255.0`, and others are not filled in. You can log in to the openwrt system from the browser, Enter OpwnWrt's IP Address: `192.168.2.1`, Account: `root`, Password: `password`, and then log in OpenWrt system.
 
