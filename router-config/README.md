@@ -309,20 +309,20 @@ For more OpenWrt firmware .dtb files are in the [amlogic-dtb](https://github.com
 
 ### 9.2 Update using script commands
 
-`Log in to your OpenWrt system` →  under the `System` menu → `file transfer` → upload ***`openwrt*.img.gz (Support suffix: *.img.xz, *.img.gz, *.7z, *.zip)`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input command: 
+`Log in to your OpenWrt system` →  under the `System` menu → `Amlogic Service` → upload ***`openwrt*.img.gz (Support suffix: *.img.xz, *.img.gz, *.7z, *.zip)`*** to ***`/mnt/mmcblk*p4/`***, enter the `system menu` → `TTYD terminal` → input command: 
 
 ```yaml
 openwrt-update
 ```
-💡Tips: You can also put the `update file` in the `/mnt/mmcblk*p4/` directory, the `openwrt-update` script will automatically find the `update file` from the `/mnt/mmcblk*p4/` and `/tmp/upload/` directories.
+💡Tips: You can also put the `update file` in the `/mnt/mmcblk*p4/` directory, the `openwrt-update-amlogic` script will automatically find the `update file` from the `/mnt/mmcblk*p4/` directories.
     
-If there is only one `update file` in the ***`/mnt/mmcblk*p4/`*** and ***`/tmp/upload/`***  directory, you can just enter the ***`openwrt-update`*** command without specifying a specific `update file`. The `openwrt-update` script will vaguely look for `update file` from this directory and try to update. If there are multiple `update file` in the `/mnt/mmcblk*p4/` directory, please use the ***`openwrt-update specified_update_file`*** command to specify the `update file`. When the `update file` is not found in the `/mnt/mmcblk*p4/` directory, the `openwrt-update` script will search for the `update file` in the `/tmp/upload/` directory and move it to the `/mnt/mmcblk*p4/` directory to perform the update operation. 
+If there is only one `update file` in the ***`/mnt/mmcblk*p4/`*** directory, you can just enter the ***`openwrt-update-amlogic`*** command without specifying a specific `update file`. The `openwrt-update-amlogic` script will vaguely look for `update file` from this directory and try to update. If there are multiple `update file` in the `/mnt/mmcblk*p4/` directory, please use the ***`openwrt-update-amlogic specified_update_file`*** command to specify the `update file`.
 
 - The `openwrt-update` update file search order
 
-| Directory | `/mnt/mmcblk*p4/` 1-6 | `/tmp/upload/` 7-10 |
-| ---- | ---- | ---- |
-| Oeder | `specified_update_file` → `*.img` → `*.img.xz` → `*.img.gz` → `*.7z` → `*.zip` → | `*.img.xz` → `*.img.gz` → `*.7z` → `*.zip` |
+| Directory | `/mnt/mmcblk*p4/` 1-6 |
+| ---- | ---- |
+| Oeder | `specified_update_file` → `*.img` → `*.img.xz` → `*.img.gz` → `*.7z` → `*.zip` → |
 
 
 ### 9.3 Replace the kernel to update
@@ -333,7 +333,7 @@ If there is only one `update file` in the ***`/mnt/mmcblk*p4/`*** and ***`/tmp/u
 openwrt-kernel
 ```
 
-💡Tips: You can also put the `kernel files` in the `/mnt/mmcblk*p4/` directory, the `openwrt-kernel` script will automatically find the `kernel file` from the `/mnt/mmcblk*p4/` and `/tmp/upload/` directories.
+💡Tips: You can also put the `kernel files` in the `/mnt/mmcblk*p4/` directory, the `openwrt-kernel` script will automatically find the `kernel file` from the `/mnt/mmcblk*p4/` directories.
 
 Replacing the OpenWrt kernel is only a kernel replacement, and the various personalized configurations of the firmware remain unchanged. It is the easiest way to update. Support replacement of kernel high/low version.
 
