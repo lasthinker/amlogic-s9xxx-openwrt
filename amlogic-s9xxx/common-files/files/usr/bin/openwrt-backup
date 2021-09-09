@@ -33,6 +33,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/dropbear/dropbear_rsa_host_key \
 ./etc/easy-rsa/ \
 ./etc/environment \
+./etc/ethers \
 ./etc/exports \
 ./etc/firewall.user \
 ./etc/gfwlist/ \
