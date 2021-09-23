@@ -25,7 +25,7 @@ kernel_library="https://github.com/lasthinker/flippy-kernel/tree/main/library"
 
 # Set firmware size ( BOOT_MB size >= 128, ROOT_MB size >= 320 )
 BOOT_MB=256
-ROOT_MB=1024
+ROOT_MB=960
 
 tag() {
     echo -e " [ \033[1;32m ${1} \033[0m ]"
@@ -317,6 +317,9 @@ EOF
         echo " Packaged Date: ${op_packaged_date}" >> etc/banner
         echo " -----------------------------------------------------" >> etc/banner
     fi
+
+    # Add some package and script connection
+    ln -sf /usr/sbin/openwrt-backup usr/sbin/flippy 2>/dev/null
 
     sync
     # Edit ${root}/* files ========== End ==========
