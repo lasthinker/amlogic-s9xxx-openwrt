@@ -127,6 +127,13 @@ refactor_files() {
     fi
 
     case "${build_op}" in
+        s922x | belink | belinkpro | ugoos)
+            FDTFILE="meson-g12b-gtking-pro.dtb"
+            UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
+            MAINLINE_UBOOT="/lib/u-boot/gtkingpro-u-boot.bin.sd.bin"
+            ANDROID_UBOOT=""
+            AMLOGIC_SOC="s922x"
+            ;;
         s905x3 | x96 | hk1 | h96 | ugoosx3)
             FDTFILE="meson-sm1-x96-max-plus-100m.dtb"
             UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
@@ -141,6 +148,20 @@ refactor_files() {
             ANDROID_UBOOT=""
             AMLOGIC_SOC="s905x2"
             ;;
+        s912 | h96proplus | octopus)
+            FDTFILE="meson-gxm-octopus-planet.dtb"
+            UBOOT_OVERLOAD="u-boot-zyxq.bin"
+            MAINLINE_UBOOT=""
+            ANDROID_UBOOT=""
+            AMLOGIC_SOC="s912"
+            ;;
+        s905d | n1)
+            FDTFILE="meson-gxl-s905d-phicomm-n1.dtb"
+            UBOOT_OVERLOAD="u-boot-n1.bin"
+            MAINLINE_UBOOT=""
+            ANDROID_UBOOT="/lib/u-boot/u-boot-2015-phicomm-n1.bin"
+            AMLOGIC_SOC="s905d"
+            ;;
         s905x | hg680p | b860h)
             FDTFILE="meson-gxl-s905x-p212.dtb"
             UBOOT_OVERLOAD="u-boot-p212.bin"
@@ -154,27 +175,6 @@ refactor_files() {
             MAINLINE_UBOOT=""
             ANDROID_UBOOT=""
             AMLOGIC_SOC="s905w"
-            ;;
-        s905d | n1)
-            FDTFILE="meson-gxl-s905d-phicomm-n1.dtb"
-            UBOOT_OVERLOAD="u-boot-n1.bin"
-            MAINLINE_UBOOT=""
-            ANDROID_UBOOT="/lib/u-boot/u-boot-2015-phicomm-n1.bin"
-            AMLOGIC_SOC="s905d"
-            ;;
-        s912 | h96proplus | octopus)
-            FDTFILE="meson-gxm-octopus-planet.dtb"
-            UBOOT_OVERLOAD="u-boot-zyxq.bin"
-            MAINLINE_UBOOT=""
-            ANDROID_UBOOT=""
-            AMLOGIC_SOC="s912"
-            ;;
-        s922x | belink | belinkpro | ugoos)
-            FDTFILE="meson-g12b-gtking-pro.dtb"
-            UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
-            MAINLINE_UBOOT="/lib/u-boot/gtkingpro-u-boot.bin.sd.bin"
-            ANDROID_UBOOT=""
-            AMLOGIC_SOC="s922x"
             ;;
         *)
             die "Have no this firmware: [ ${build_op} - ${kernel} ]"
@@ -467,13 +467,14 @@ choose_build() {
     done
     echo && read -p " Please select the Amlogic SoC: " pause
     case  $pause in
-          s905x3 | 1) build="s905x3" ;;
-          s905x2 | 2) build="s905x2" ;;
-          s905x | 3) build="s905x" ;;
-          s905d | 4) build="s905d" ;;
-          s912 | 5) build="s912" ;;
-          s922x | 6) build="s922x" ;;
-          *) die "Have no this Amlogic SoC" ;;
+        1 | s922x)  build="s922x" ;;
+        2 | s905x3) build="s905x3" ;;
+        3 | s905x2) build="s905x2" ;;
+        4 | s912)   build="s912" ;;
+        5 | s905d)  build="s905d" ;;
+        6 | s905x)  build="s905x" ;;
+        7 | s905w)  build="s905w" ;;
+        *) die "Have no this Amlogic SoC" ;;
     esac
     tag ${build}
 }
