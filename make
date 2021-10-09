@@ -61,56 +61,13 @@ cleanup() {
 extract_openwrt() {
     cd ${make_path}
     local firmware="${openwrt_path}/${firmware}"
-    local suffix="${firmware##*.}"
-    mount="${tmp_path}/mount"
+
     root_comm="${tmp_path}/root_comm"
+    mkdir -p ${root_comm}
 
-    mkdir -p ${mount} ${root_comm}
-    while true; do
-        case "${suffix}" in
-        tar)
-            tar -xf ${firmware} -C ${root_comm}
-            break
-            ;;
-        gz)
-            if ls ${firmware} | grep -q ".tar.gz$"; then
-                tar -xzf ${firmware} -C ${root_comm}
-                break
-            else
-                tmp_firmware="${tmp_path}/${firmware##*/}"
-                tmp_firmware=${tmp_firmware%.*}
-                gzip -d ${firmware} -c > ${tmp_firmware}
-                firmware=${tmp_firmware}
-                suffix=${firmware##*.}
-            fi
-            ;;
-        img)
-            loop_setup ${firmware}
-            if ! mount -r ${loop}p2 ${mount}; then
-                if ! mount -r ${loop}p1 ${mount}; then
-                    die "mount ${loop} failed!"
-                fi
-            fi
-            cp -rf ${mount}/* ${root_comm} && sync
-            umount -f ${mount}
-            losetup -d ${loop}
-            break
-            ;;
-        ext4)
-            if ! mount -r -o loop ${firmware} ${mount}; then
-                die "mount ${firmware} failed!"
-            fi
-            cp -rf ${mount}/* ${root_comm} && sync
-            umount -f ${mount}
-            break
-            ;;
-        *)
-            die "This script only supports rootfs.tar[.gz], ext4-factory.img[.gz], root.ext4[.gz] six formats."
-            ;;
-        esac
-    done
-
+    tar -xzf ${firmware} -C ${root_comm}
     rm -rf ${root_comm}/lib/modules/*/
+    sync
 }
 
 extract_armbian() {
@@ -136,11 +93,12 @@ extract_armbian() {
         cd ${root}/lib/modules/*/
         rm -rf *.ko
         find ./ -type f -name '*.ko' -exec ln -s {} ./ \;
-        cd ${make_path} && sync
+        sync
     else
         die "Have no kernel files in [ ${kernel_dir} ]"
     fi
 
+    cd ${make_path}
     cp -rf ${root_comm}/* ${root}
 
     # Complete file for ${root}: [ /etc ], [ /lib/u-boot ] etc.
@@ -397,8 +355,8 @@ copy2image() {
 
     set -e
 
-    local bootfs="${mount}/${kernel}/${build_op}/bootfs"
-    local rootfs="${mount}/${kernel}/${build_op}/rootfs"
+    local bootfs="${tmp_path}/${kernel}/${build_op}/bootfs"
+    local rootfs="${tmp_path}/${kernel}/${build_op}/rootfs"
 
     mkdir -p ${bootfs} ${rootfs} && sync
     if ! mount ${loop}p1 ${bootfs}; then
