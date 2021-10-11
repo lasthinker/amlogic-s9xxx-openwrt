@@ -305,44 +305,44 @@ delete_snapshot() {
 
 migrate_snapshot() {
     cur_rootdev=$(lsblk -l -o NAME,MOUNTPOINT |awk '$2~/^\/$/ {print $1}')
-    if [ "$cur_rootdev" == "" ];then
-        echo "Cannot find the disk device corresponding to the current rootfs！"
-        read -p "Press enter to return" q
+    if [ "${cur_rootdev}" == "" ];then
+        echo "The disk device corresponding to the current rootfs cannot be found!"
+        read -p "Press [ enter ] to return." q
         return
     fi
-    dev_pre=$(echo "$cur_rootdev" | awk '{print substr($1, 1, length($1)-1);}')
-    rootdev_idx=$(echo "$cur_rootdev" | awk '{print substr($1, length($1),1);}')
+    dev_pre=$(echo "${cur_rootdev}" | awk '{print substr($1, 1, length($1)-1);}')
+    rootdev_idx=$(echo "${cur_rootdev}" | awk '{print substr($1, length($1),1);}')
     case $rootdev_idx in
         2)  old_rootpath="/mnt/${dev_pre}3";;
         3)  old_rootpath="/mnt/${dev_pre}2";;
-        *)  echo "Failed to select the rootfs path of the old version!"
-            read -p "Press enter to return" q
+        *)  echo "Judge the old version of rootfs path failed!"
+            read -p "Press [ enter ] to return." q
             return
             ;;
     esac
-    echo "The following is a snapshot of etc found from the old version of rootfs, please enter the name of one of them"
-    echo "Tips: Automatically exclude etc-000 and etc-001"
+    echo "The following are snapshots of etc found from the old version of rootfs, please enter the name of one of them."
+    echo "Tip: Automatically exclude etc-000 and etc-001"
     echo "-----------------------------------------------------------------------------------"
-    btrfs subvolume list -rt "$old_rootpath" | grep -v "${SNAPSHOT_PRESTR}etc-000" | grep -v "${SNAPSHOT_PRESTR}etc-001"
+    btrfs subvolume list -rt "${old_rootpath}" | grep -v "${SNAPSHOT_PRESTR}etc-000" | grep -v "${SNAPSHOT_PRESTR}etc-001"
     echo "-----------------------------------------------------------------------------------"
-    read -p "Please enter the name of the snapshot to be migrated (just enter ${SNAPSHOT_PRESTR} after the part): " old_snap_name
-    if [ "$old_snap_name" == "" ];then
-        read -p "The name is empty, press enter to return" q
+    read -p "Please enter the name of the snapshot to be migrated (only the part after $(SNAPSHOT_PRESTR) needs to be entered): " old_snap_name
+    if [ "${old_snap_name}" == "" ];then
+        read -p "The name is empty, Press [ enter ] to return." q
         return
-    elif ! btrfs subvolume list -rt "$old_rootpath" | awk '{print $4}' | grep "^${SNAPSHOT_PRESTR}${old_snap_name}$" >/dev/null;then
+    elif ! btrfs subvolume list -rt "${old_rootpath}" | awk '{print $4}' | grep "^${SNAPSHOT_PRESTR}${old_snap_name}$" >/dev/null;then
         echo "The name was entered incorrectly, and the corresponding snapshot was not found!"
-        read -p "Press enter to return" q
+        read -p "Press [ enter ] to return." q
         return
-    elif [ "$old_snap_name" == "etc-000" ] || [ "$old_snap_name" == "etc-001" ];then
+    elif [ "${old_snap_name}" == "etc-000" ] || [ "${old_snap_name}" == "etc-001" ];then
         echo "Critical snapshots are not allowed to migrate!"
-        read -p "Press enter to return" q
+        read -p "Press [ enter ] to return." q
         return
     fi
 
     # Find out if there is a snapshot with the same name under the current rootfs
     if btrfs subvolume list -rt / | awk '{print $4}' | grep "^\\${SNAPSHOT_PRESTR}${old_snap_name}$" >/dev/null;then
-        echo "The existing name is [$old_snap_name] Snapshot of, cannot be migrated!"
-        read -p "Press enter to return" q
+        echo "A snapshot with the name [ ${old_snap_name} ] already exists and cannot be migrated! (But you can delete the existing snapshot with the same name and then migrate)"
+        read -p "Press [ enter ] to return." q
         return
     fi
 
@@ -350,8 +350,8 @@ migrate_snapshot() {
     echo "----------------------------------------------------------------------------------------------"
     df -h
     echo "----------------------------------------------------------------------------------------------"
-    echo -e "\033[1mNote: Migration [${old_rootpath}] Snapshot [$old_snap_name] To the present rootfs, Need to take up about $need_size space,"
-    echo -e "      please confirm [/] Partition [/dev/${cur_rootdev}] Available space(Available)Is it sufficient?\033[0m"
+    echo -e "Note: To migrate the snapshot [ ${old_snap_name} ] of [ ${old_rootpath} ] to the current rootfs, it takes about [ ${need_size} ] space,"
+    echo -e "      Please confirm whether the partition [/dev/${cur_rootdev}] where [/] is located has enough free space (Available)?"
     read -p "Are you sure to migrate? y/n [n] " yn
     if [ "$yn" == "y" ] ||  [ "$yn" == "Y" ];then
         (
@@ -366,11 +366,11 @@ migrate_snapshot() {
                 cp ${SNAPSHOT_PRESTR}etc-000/flippy-openwrt-release ${SNAPSHOT_PRESTR}${old_snap_name}/
                 cp ${SNAPSHOT_PRESTR}etc-000/banner ${SNAPSHOT_PRESTR}${old_snap_name}/banner
                 btrfs property set -ts ${SNAPSHOT_PRESTR}${old_snap_name} ro true
-                echo "The migration is complete, if you want to apply the snapshot [$old_snap_name], Please use the restore snapshot function."
+                echo "The migration is complete, if you want to apply the snapshot [ ${old_snap_name} ], please use the restore snapshot function."
             else
-                echo "Migration failed!"
+                echo "The migration failed!"
             fi
-            read -p "Press enter to return" q
+            read -p "Press [ enter ] to return." q
             return
         )
     fi
@@ -379,48 +379,45 @@ migrate_snapshot() {
 snapshot_help() {
     clear
     cat <<EOF
-============================================================================================================
+============================================================================================================================
 1.  What is a snapshot?
-    A snapshot is the state record of a certain subvolume at a certain point in time, and a snapshot is a
-    special subvolume；
-    When the local snapshot is first generated, it shares the disk space with the original subvolume, so it
-    does not occupy additional space, and only the files that have changed subsequently occupy space；
-    Snapshots migrated from other places are not snapshots in essence, but just ordinary subvolumes, so they
-    take up space.
+    A snapshot is the state record of a certain subvolume at a certain point in time, and a snapshot is a special subvolume;
+    When the local snapshot is first generated, it shares the disk space with the original subvolume,
+    so it does not occupy additional space, and only the files that have changed subsequently occupy space;
+    Snapshots migrated from other places are not snapshots in essence, but just ordinary subvolumes, so they take up space.
 2.  How to display existing snapshots?
-    input the command： btrfs subvolume list -rt /
+    input the command: btrfs subvolume list -rt /
 ---------------------------------------------------------------------------------------------
 EOF
     btrfs subvolume list -rt /
     cat <<EOF
 ---------------------------------------------------------------------------------------------
 2.  How to create a snapshot?
-    btrfs subvolume snapshot -r /etc /.snapshots/Snapshot1  # -r It means to generate a read-only snapshot
+    btrfs subvolume snapshot -r /etc /.snapshots/snapshot_1  # -r It means to generate a read-only snapshot
 3.  How to delete a snapshot?
-    btrfs subvolume delete -c /.snapshots/Snapshot1  # -c Yes commit the meaning of
+    btrfs subvolume delete -c /.snapshots/snapshot_1  # -c Yes commit the meaning of
 4.  How to rename a snapshot?
-    Just use the mv command of the operating system, for example：
-    mv /.snapshots/Snapshot1 /.snapshots/Snapshot2
+    Just use the [ mv ] command of the operating system, for example:
+    mv /.snapshots/snapshot_1 /.snapshots/snapshot_2
 5.  How to restore the snapshot?
-    mv /etc /etc.backup  # Back up etc to etc.backup, that is, rename the subvolume
-    btrfs subvolume snapshot /.snapshots/etc-001  /etc   # Use snapshot etc-001 to generate snapshot etc.
-    Note that there is no -r parameter
-    # (Yes, snapshots can also be regenerated)
-    btrfs delete -c /etc.backup # After the previous step is successful, just delete the etc backup just now
-6.  How to restore a file from a snapshot?
-    Example A: Restore mount point configuration file from snapshot etc-000： /etc/config/fstab
+    mv /etc /etc.backup  # Back up /etc to /etc.backup, that is, rename the subvolume
+    btrfs subvolume snapshot /.snapshots/etc-001  /etc   # Use snapshot etc-001 to generate snapshot etc, no -r parameter
+    # (Yes, snapshots can also be re-generated snapshots)
+    btrfs delete -c /etc.backup # After the previous step is successful, you can delete the etc backup just now
+6.  How to restore a certain file from the snapshot?
+    Example A: Restore the mount point configuration file from snapshot etc-000: /etc/config/fstab
         cp /.snapshots/etc-000/config/fstab /etc/config/
-    Example B: Restore network configuration from snapshot etc-001：
+    Example B: Restore network configuration from snapshot etc-001:
         cp /.snapshots/etc-001/config/network  /etc/config/
-    Example C: Restore ssr configuration file from snapshot etc-001：
+    Example C: Restore the ssr configuration file from snapshot etc-001:
         cp /.snapshots/etc-001/config/shadowsocksr /etc/config/
-    # (Yes, it is the copy command of the operating system)
+    # (Yes, it is the [ cp ] command of the operating system)
 7.  How to migrate snapshots from remote?
-    btrfs support ssh Remote migration of snapshots, E.g:
-    ssh 192.168.2.1 btrfs send /.snapshots/SnapshotX  |  btrfs receive /.snapshots
-    After the command is completed, the remote SnapshotX is copied to the local /.snapshots/SnapshotX
-    (as mentioned above, the migration is a subvolume, which will take up space)
-============================================================================================================
+    btrfs supports ssh remote migration snapshots, for example:
+    ssh 192.168.2.1 btrfs send /.snapshots/snapshot_x  |  btrfs receive /.snapshots
+    After the command is completed, the remote snapshot_x is copied to the local /.snapshots/snapshot_x
+    (as mentioned above, the migration is a subvolume, which takes up space)
+============================================================================================================================
 EOF
     exit 0
 }
