@@ -137,6 +137,13 @@ refactor_files() {
             ANDROID_UBOOT=""
             AMLOGIC_SOC="s922x"
             ;;
+        s922x-n2 | odroid-n2)
+            FDTFILE="meson-g12b-gtking-pro-rev_a.dtb"
+            UBOOT_OVERLOAD="u-boot-odroid-n2.bin"
+            MAINLINE_UBOOT="/lib/u-boot/odroid-n2-u-boot.bin.sd.bin"
+            ANDROID_UBOOT=""
+            AMLOGIC_SOC="s922x"
+            ;;
         s905x3 | x96 | hk1 | h96 | ugoosx3)
             FDTFILE="meson-sm1-x96-max-plus-100m.dtb"
             UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
