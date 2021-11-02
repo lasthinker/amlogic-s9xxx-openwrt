@@ -19,36 +19,42 @@ our $rpscpu_exclude_eth1_core=1;
 exit(0);
 
 ############################## sub functions #########################
-# Read /etc/config/balance_irq configuration file
+# Read /etc/balance_irq configuration file
 sub read_config {
     my $cpu_count = &get_cpu_count();
     my $fh;
-    my $config_file = "/etc/config/balance_irq";
-    if( -f $config_file) {
-            open $fh, "<", $config_file or die $!;
-            while(<$fh>) {
-                chomp;
-                my($name, $value) = split;
-                my @cpus = split(',', $value);
-		# ARMV8 The current maximum number of CPU cores is 8 cores
-                my $min_cpu = 9;
+    my $config_file;
+    if(-f "/etc/balance_irq") {
+        $config_file = "/etc/balance_irq";
+    elsif(-f "/etc/config/balance_irq") {
+        $config_file = "/etc/config/balance_irq";
+    else {
+	exit(0);
+    }
 
-                foreach my $cpu (@cpus) {
-                    if($cpu > $cpu_count) {
-                        $cpu = $cpu_count;        
-                    } elsif($cpu < 1) {
-                        $cpu = 1;
-                    }
-                    if($min_cpu > $cpu) {
-                        $min_cpu = $cpu;
-                    }
-                }
+    open $fh, "<", $config_file or die $!;
+    while(<$fh>) {
+        chomp;
+        my($name, $value) = split;
+        my @cpus = split(',', $value);
+        # ARMV8 The current maximum number of CPU cores is 8 cores
+        my $min_cpu = 9;
 
-                $cpu_map{$name} = \@cpus;
-                $min_cpu_map{$name} = $min_cpu;
-        }        
-            close $fh;
-    } 
+        foreach my $cpu (@cpus) {
+            if($cpu > $cpu_count) {
+                $cpu = $cpu_count;        
+            } elsif($cpu < 1) {
+                $cpu = 1;
+            }
+            if($min_cpu > $cpu) {
+                $min_cpu = $cpu;
+            }
+        } # foreach
+
+        $cpu_map{$name} = \@cpus;
+        $min_cpu_map{$name} = $min_cpu;
+    } # while 
+    close $fh;
 }
 
 # Calculate the number of cpu cores
@@ -162,7 +168,7 @@ sub enable_eth_rps_rfs {
             close $fh;
 
             # USB external network card: eth1 (RTL8153), the best rx_ring measured in the range of 100-500, the default value is 100, after more than 500, the load of multiple CPUs will be unbalanced
-            &tunning_eth_ring($eth, 256, 0) if ($eth ne "eth0");
+            &tunning_eth_ring($eth, 192, 0) if ($eth ne "eth0");
         }
     }
     open my $fh, ">", "/proc/sys/net/core/rps_sock_flow_entries" or die;
