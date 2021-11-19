@@ -27,6 +27,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/openclash/game_rules/ \
 ./etc/openclash/rule_provider/ \
 ./etc/openclash/proxy_provider/ \
+./etc/dnscrypt-proxy2/ \
 ./etc/dnsforwarder/ \
 ./etc/dnsmasq.conf \
 ./etc/dnsmasq.d/ \
