@@ -9,8 +9,6 @@ name: Use Releases file to Packaging
 on:
   repository_dispatch:
   workflow_dispatch:
-  #schedule:
-    #- cron: '0 22 * * *'
 
 env:
   UPLOAD_FIRMWARE: false
