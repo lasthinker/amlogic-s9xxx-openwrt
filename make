@@ -30,19 +30,20 @@ BOOT_MB=256
 ROOT_MB=960
 
 tag() {
-    echo -e " [ \033[1;32m ${1} \033[0m ]"
+    echo -e " [ \033[1;92m ${1} \033[0m ]"
 }
 
 process() {
-    echo -e " [ \033[1;32m ${build} \033[0m - \033[1;32m ${kernel} \033[0m ] ${1}"
-}
-
-die() {
-    error "${1}" && exit 1
+    echo -e " [ \033[1;92m ${build} \033[0m - \033[1;92m ${kernel} \033[0m ] ${1}"
 }
 
 error() {
-    echo -e " [ \033[1;31m Error \033[0m ] ${1}"
+    echo -e " [ \033[1;91m Error \033[0m ] ${1}"
+}
+
+die() {
+    error "${1}"
+    exit 1
 }
 
 loop_setup() {
@@ -223,6 +224,13 @@ refactor_files() {
         ANDROID_UBOOT=""
         AMLOGIC_SOC="s912"
         ;;
+    s912-t95z | s912-t95z-plus)
+        FDTFILE="meson-gxm-t95z-plus.dtb"
+        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        AMLOGIC_SOC="s912"
+        ;;
     s905 | beelinkminimx | mxqpro+)
         FDTFILE="meson-gxbb-vega-s95-telos.dtb"
         #FDTFILE="meson-gxbb-mxq-pro-plus.dtb"
@@ -237,6 +245,13 @@ refactor_files() {
         UBOOT_OVERLOAD="u-boot-n1.bin"
         MAINLINE_UBOOT=""
         ANDROID_UBOOT="/lib/u-boot/u-boot-2015-phicomm-n1.bin"
+        AMLOGIC_SOC="s905d"
+        ;;
+    s905d-ki)
+        FDTFILE="meson-gxl-s905d-mecool-ki-pro.dtb"
+        UBOOT_OVERLOAD="u-boot-p201.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
         AMLOGIC_SOC="s905d"
         ;;
     s905x | hg680p | b860h)
@@ -303,10 +318,13 @@ EOF
 
     # Add drivers
     [ -f etc/modules.d/8189fs ] || echo "8189fs" >etc/modules.d/8189fs
+    [ -f etc/modules.d/88x2cs ] || echo "88x2cs" >etc/modules.d/88x2cs
     [ -f etc/modules.d/8188fu ] || echo "8188fu" >etc/modules.d/8188fu
     [ -f etc/modules.d/usb-net-rtl8150 ] || echo "rtl8150" >etc/modules.d/usb-net-rtl8150
     [ -f etc/modules.d/usb-net-rtl8152 ] || echo "r8152" >etc/modules.d/usb-net-rtl8152
     [ -f etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" >etc/modules.d/usb-net-asix-ax88179
+    [ -f etc/modules.d/brcmfmac ] || echo "brcmfmac" >etc/modules.d/brcmfmac
+    [ -f etc/modules.d/brcmutil ] || echo "brcmutil" >etc/modules.d/brcmutil
 
     # Add cpustat
     DISTRIB_SOURCECODE="$(cat etc/openwrt_release | grep "DISTRIB_SOURCECODE=" | awk -F "'" '{print $2}')"
@@ -333,14 +351,15 @@ EOF
     fi
 
     # Add firmware information to the etc/flippy-openwrt-release
-    echo "FDTFILE='${FDTFILE}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "U_BOOT_EXT='${K510}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "UBOOT_OVERLOAD='${UBOOT_OVERLOAD}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "MAINLINE_UBOOT='${MAINLINE_UBOOT}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "ANDROID_UBOOT='${ANDROID_UBOOT}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "KERNEL_VERSION='${build_usekernel}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "SOC='${AMLOGIC_SOC}'" >>etc/flippy-openwrt-release 2>/dev/null
-    echo "K510='${K510}'" >>etc/flippy-openwrt-release 2>/dev/null
+    op_release="etc/flippy-openwrt-release"
+    echo "FDTFILE='${FDTFILE}'" >>${op_release} 2>/dev/null
+    echo "U_BOOT_EXT='${K510}'" >>${op_release} 2>/dev/null
+    echo "UBOOT_OVERLOAD='${UBOOT_OVERLOAD}'" >>${op_release} 2>/dev/null
+    echo "MAINLINE_UBOOT='${MAINLINE_UBOOT}'" >>${op_release} 2>/dev/null
+    echo "ANDROID_UBOOT='${ANDROID_UBOOT}'" >>${op_release} 2>/dev/null
+    echo "KERNEL_VERSION='${build_usekernel}'" >>${op_release} 2>/dev/null
+    echo "SOC='${AMLOGIC_SOC}'" >>${op_release} 2>/dev/null
+    echo "K510='${K510}'" >>${op_release} 2>/dev/null
 
     # Add firmware version information to the terminal page
     if [ -f etc/banner ]; then
@@ -349,11 +368,23 @@ EOF
         echo " Amlogic SoC: ${build_op}" >>etc/banner
         echo " OpenWrt Kernel: ${op_version}" >>etc/banner
         echo " Packaged Date: ${op_packaged_date}" >>etc/banner
-        echo " -----------------------------------------------------" >>etc/banner
+        echo " -------------------------------------------------------" >>etc/banner
     fi
 
     # Add some package and script connection
     ln -sf /usr/sbin/openwrt-backup usr/sbin/flippy 2>/dev/null
+
+    # Add rtl8189fs driver for s905x(HG680P & B860H), rtl8822cs driver for s905x3(x96max+) in the dev branch of the kernel repo
+    [[ "${build_soc}" == "s905x3" || "${build_soc}" == "s905x" ]] && {
+        sed -i "s|stable|dev|g" etc/config/amlogic
+    }
+
+    # Add wireless master mode
+    wireless_mac80211="lib/netifd/wireless/mac80211.sh"
+    [ -f "${wireless_mac80211}" ] && {
+        sed -i "s|ip link |ipconfig link |g" ${wireless_mac80211}
+        sed -i "s|iw |ipconfig |g" ${wireless_mac80211}
+    }
 
     # Get random macaddr
     mac_hexchars="0123456789ABCDEF"
@@ -567,16 +598,18 @@ choose_build() {
     done
     echo && read -p " Please select the Amlogic SoC: " pause
     case $pause in
-        1 | s922x) build="s922x" ;;
-        2 | s922x-n2) build="s922x-n2" ;;
-        3 | s905x3) build="s905x3" ;;
-        4 | s905x2) build="s905x2" ;;
-        5 | s912) build="s912" ;;
-        6 | s905) build="s905" ;;
-        7 | s905d) build="s905d" ;;
-        8 | s905x) build="s905x" ;;
-        9 | s905w) build="s905w" ;;
-        *) die "Have no this Amlogic SoC" ;;
+    11 | s922x) build="s922x" ;;
+    12 | s922x-n2) build="s922x-n2" ;;
+    13 | s905x3) build="s905x3" ;;
+    14 | s905x2) build="s905x2" ;;
+    15 | s912) build="s912" ;;
+    16 | s912-t95z) build="s912-t95z" ;;
+    17 | s905) build="s905" ;;
+    18 | s905d) build="s905d" ;;
+    19 | s905d-ki) build="s905d-ki" ;;
+    20 | s905x) build="s905x" ;;
+    21 | s905w) build="s905w" ;;
+    *) die "Have no this Amlogic SoC" ;;
     esac
     tag ${build}
 }
@@ -594,7 +627,7 @@ set_rootsize() {
             break
         else
             ((i++ >= 2)) && exit 1
-            error "Numerical value input error, try again!\n"
+            error "Invalid numeric input, try again!\n"
             sleep 1s
         fi
     done
@@ -617,8 +650,8 @@ Options:
     -k, --kernelversion    Set the kernel version, which must be in the "kernel" directory
       , -k all             Build all the kernel version
       , -k latest          Build the latest kernel version
-      , -k 5.4.160         Specify a single kernel for compilation
-      , -k 5.4.160_5.10.80 Specify multiple cores, use "_" to connect
+      , -k 5.4.170         Specify a single kernel for compilation
+      , -k 5.4.170_5.10.90 Specify multiple cores, use "_" to connect
 
     -a, --autokernel       Whether to auto update to the latest kernel of the same series
       , -a true            Auto update to the latest kernel
