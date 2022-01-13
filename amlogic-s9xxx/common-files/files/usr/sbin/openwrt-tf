@@ -7,12 +7,16 @@
 #==================================================================================================================================
 
 # Set font color
-purple_font_prefix="\033[35m"
-green_font_prefix="\033[32m"
-red_font_prefix="\033[31m"
+blue_font_prefix="\033[94m"
+purple_font_prefix="\033[95m"
+green_font_prefix="\033[92m"
+yellow_font_prefix="\033[93m"
+red_font_prefix="\033[91m"
 font_color_suffix="\033[0m"
+INFO="[${blue_font_prefix}INFO${font_color_suffix}]"
 STEPS="[${purple_font_prefix}STEPS${font_color_suffix}]"
 SUCCESS="[${green_font_prefix}SUCCESS${font_color_suffix}]"
+OPT="[${yellow_font_prefix}OPT${font_color_suffix}]"
 ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 
 echo -e "${STEPS} Try to create a shared partition ..."
@@ -105,9 +109,16 @@ mount -t ext4 "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
 sync
 
 echo -e "${STEPS} Init the docker config ..."
+/etc/init.d/dockerd stop 2>/dev/null
+/etc/init.d/dockerd disable 2>/dev/null
 rm -rf "/opt/docker" 2>/dev/null && sync
 mkdir -p /mnt/${PT_PRE}4/docker && sync
 ln -sf "/mnt/${PT_PRE}4/docker/" "/opt/docker"
+sync
+if [ -f "/etc/config/dockerd" ]; then
+   uci set dockerd.@globals[0].data_root="/mnt/${PT_PRE}4/docker/"
+   uci commit dockerd
+fi
 cat >/etc/docker/daemon.json <<EOF
 {
   "bip": "172.31.0.1/24",
@@ -127,8 +138,6 @@ cat >/etc/docker/daemon.json <<EOF
 }
 EOF
 sync
-/etc/init.d/dockerd stop 2>/dev/null
-/etc/init.d/dockerd disable 2>/dev/null
 /etc/init.d/dockerd start 2>/dev/null
 /etc/init.d/dockerd enable 2>/dev/null
 
