@@ -379,13 +379,6 @@ EOF
         sed -i "s|stable|dev|g" etc/config/amlogic
     }
 
-    # Add wireless master mode
-    wireless_mac80211="lib/netifd/wireless/mac80211.sh"
-    [ -f "${wireless_mac80211}" ] && {
-        sed -i "s|ip link |ipconfig link |g" ${wireless_mac80211}
-        sed -i "s|iw |ipconfig |g" ${wireless_mac80211}
-    }
-
     # Get random macaddr
     mac_hexchars="0123456789ABCDEF"
     mac_end=$(for i in {1..6}; do echo -n ${mac_hexchars:$((${RANDOM} % 16)):1}; done | sed -e 's/\(..\)/:\1/g')
