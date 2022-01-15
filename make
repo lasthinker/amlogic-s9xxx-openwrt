@@ -196,10 +196,17 @@ refactor_files() {
         ANDROID_UBOOT=""
         AMLOGIC_SOC="s922x"
         ;;
-    s922x-n2 | odroid-n2)
-        FDTFILE="meson-g12b-gtking-pro-rev_a.dtb"
+    s922x-n2 | odroid-n2 | n2)
+        FDTFILE="meson-g12b-odroid-n2.dtb"
         UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
         MAINLINE_UBOOT="/lib/u-boot/odroid-n2-u-boot.bin.sd.bin"
+        ANDROID_UBOOT=""
+        AMLOGIC_SOC="s922x"
+        ;;
+    s922x-reva)
+        FDTFILE="meson-g12b-gtking-pro-rev_a.dtb"
+        UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
+        MAINLINE_UBOOT="/lib/u-boot/gtkingpro-u-boot.bin.sd.bin"
         ANDROID_UBOOT=""
         AMLOGIC_SOC="s922x"
         ;;
@@ -377,6 +384,13 @@ EOF
     # Add rtl8189fs driver for s905x(HG680P & B860H), rtl8822cs driver for s905x3(x96max+) in the dev branch of the kernel repo
     [[ "${build_soc}" == "s905x3" || "${build_soc}" == "s905x" ]] && {
         sed -i "s|stable|dev|g" etc/config/amlogic
+    }
+
+    # Add wireless master mode
+    wireless_mac80211="lib/netifd/wireless/mac80211.sh"
+    [ -f "${wireless_mac80211}" ] && {
+        sed -i "s|ip link |ipconfig link |g" ${wireless_mac80211}
+        sed -i "s|iw |ipconfig |g" ${wireless_mac80211}
     }
 
     # Get random macaddr
@@ -593,15 +607,16 @@ choose_build() {
     case $pause in
     11 | s922x) build="s922x" ;;
     12 | s922x-n2) build="s922x-n2" ;;
-    13 | s905x3) build="s905x3" ;;
-    14 | s905x2) build="s905x2" ;;
-    15 | s912) build="s912" ;;
-    16 | s912-t95z) build="s912-t95z" ;;
-    17 | s905) build="s905" ;;
-    18 | s905d) build="s905d" ;;
-    19 | s905d-ki) build="s905d-ki" ;;
-    20 | s905x) build="s905x" ;;
-    21 | s905w) build="s905w" ;;
+    13 | s922x-reva) build="s922x-reva" ;;
+    14 | s905x3) build="s905x3" ;;
+    15 | s905x2) build="s905x2" ;;
+    16 | s912) build="s912" ;;
+    17 | s912-t95z) build="s912-t95z" ;;
+    18 | s905) build="s905" ;;
+    19 | s905d) build="s905d" ;;
+    20 | s905d-ki) build="s905d-ki" ;;
+    21 | s905x) build="s905x" ;;
+    22 | s905w) build="s905w" ;;
     *) die "Have no this Amlogic SoC" ;;
     esac
     tag ${build}
