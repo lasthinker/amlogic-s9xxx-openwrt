@@ -1,5 +1,6 @@
 #!/bin/bash
 #========================================================================
+#
 # This file is licensed under the terms of the GNU General Public
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
@@ -12,11 +13,36 @@
 # Copyright (C) 2020- https://github.com/tuanqing/mknop
 # Copyright (C) 2020- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
+#===== Install the basic packages of make openwrt for Ubuntu 20.04 ======
+#
+# sudo apt-get update -y
+# sudo apt-get full-upgrade -y
+# sudo apt-get install -y $(curl -fsSL git.io/ubuntu-2004-openwrt)
+#
 # Command: sudo ./make -d
 # Command optional parameters please refer to the source code repository
-#========================================================================
-
-#===== Do not modify the following parameter settings, Start =====
+#
+#============================ Functions list ============================
+#
+# error_msg          : Output error message
+# process_msg        : Output process message
+#
+# init_var           : Initialize all variables
+# find_makefile      : Find make file (openwrt-*-rootfs.tar.gz)
+# download_kernel    : Download the latest kernel
+#
+# extract_openwrt    : Extract openwrt files
+# extract_armbian    : Extract armbian firmware files
+# refactor_files     : Refactor related files
+# make_image         : Making OpenWrt files
+# copy_files         : Copy the OpenWrt file
+# clean_tmp          : Clear temporary files
+#
+# loop_make          : Loop to make OpenWrt firmware
+#
+#==================== Set make environment variables ====================
+#
+# Related file storage path
 make_path=${PWD}
 tmp_path=${make_path}/tmp
 out_path=${make_path}/out
@@ -27,20 +53,22 @@ kernel_path=${amlogic_path}/amlogic-kernel
 armbian_path=${amlogic_path}/amlogic-armbian
 uboot_path=${amlogic_path}/amlogic-u-boot
 configfiles_path=${amlogic_path}/common-files
-op_release="etc/flippy-openwrt-release"
+op_release="etc/flippy-openwrt-release" # Add custom openwrt firmware information
 build_openwrt=("s905x")
-
-kernel_library="https://github.com/lasthinker/kernel/tree/main/pub"
-#kernel_library="https://github.com/lasthinker/kernel/trunk/pub"
+#
+# Latest kernel download repository
+kernel_repo="https://github.com/lasthinker/kernel/tree/main/pub"
+#kernel_repo="https://github.com/lasthinker/kernel/trunk/pub"
 version_branch="stable"
 build_kernel=("5.10.90" "5.4.170")
 auto_kernel="true"
-
-# Set firmware size (BOOT_MB >= 128, ROOT_MB >= 512)
+#
+# Set OpenWrt firmware size (BOOT_MB >= 256, ROOT_MB >= 512)
 SKIP_MB=16
 BOOT_MB=256
 ROOT_MB=960
-#===== Do not modify the following parameter settings, End =======
+#
+#========================================================================
 
 error_msg() {
     echo -e " [\033[1;91m Error \033[0m] ${1}"
@@ -51,23 +79,96 @@ process_msg() {
     echo -e " [\033[1;92m ${soc} \033[0m - \033[1;92m ${kernel} \033[0m] ${1}"
 }
 
-loop_setup() {
-    loop=$(losetup -P -f --show "${1}")
-    [ ${loop} ] || error_msg "losetup ${1} failed."
+init_var() {
+    cd ${make_path}
+
+    # If it is followed by [ : ], it means that the option requires a parameter value
+    get_all_ver=$(getopt "db:k:a:v:s:" "${@}")
+
+    while [ -n "${1}" ]; do
+        case "${1}" in
+        -d | --default)
+            : ${build_openwrt:="${build_openwrt}"}
+            : ${build_kernel:="${build_kernel}"}
+            : ${auto_kernel:="${auto_kernel}"}
+            : ${version_branch:="${version_branch}"}
+            : ${ROOT_MB:="${ROOT_MB}"}
+            ;;
+        -b | --buildSoC)
+            if [ -n "${2}" ]; then
+                unset build_openwrt
+                oldIFS=$IFS
+                IFS=_
+                build_openwrt=(${2})
+                IFS=$oldIFS
+                shift
+            else
+                error_msg "Invalid -b parameter [ ${2} ]!"
+            fi
+            ;;
+        -k | --kernel)
+            if [ -n "${2}" ]; then
+                oldIFS=$IFS
+                IFS=_
+                build_kernel=(${2})
+                IFS=$oldIFS
+                shift
+            else
+                error_msg "Invalid -k parameter [ ${2} ]!"
+            fi
+            ;;
+        -a | --autoKernel)
+            if [ -n "${2}" ]; then
+                auto_kernel="${2}"
+                shift
+            else
+                error_msg "Invalid -a parameter [ ${2} ]!"
+            fi
+            ;;
+        -v | --versionBranch)
+            if [ -n "${2}" ]; then
+                version_branch="${2}"
+                shift
+            else
+                error_msg "Invalid -v parameter [ ${2} ]!"
+            fi
+            ;;
+        -s | --size)
+            if [[ -n "${2}" && "${2}" -ge "512" ]]; then
+                ROOT_MB="${2}"
+                shift
+            else
+                error_msg "Invalid -s parameter [ ${2} ]!"
+            fi
+            ;;
+        *)
+            error_msg "Invalid option [ ${1} ]!"
+            ;;
+        esac
+        shift
+    done
+}
+
+find_makefile() {
+    cd ${make_path}
+
+    [[ -f "${openwrt_path}/${openwrt_file}" ]] || error_msg "The OpenWrt file does not exist!"
 }
 
 download_kernel() {
+    cd ${make_path}
+
     # Convert kernel library address to svn format
-    if [[ ${kernel_library} == http* && $(echo ${kernel_library} | grep "tree/main") != "" ]]; then
-        kernel_library="${kernel_library//tree\/main/trunk}"
+    if [[ ${kernel_repo} == http* && $(echo ${kernel_repo} | grep "tree/main") != "" ]]; then
+        kernel_repo="${kernel_repo//tree\/main/trunk}"
     fi
-    kernel_library="${kernel_library}/${version_branch}"
+    kernel_repo="${kernel_repo}/${version_branch}"
 
     # Set empty array
     tmp_arr_kernels=()
 
     # Convert kernel library address to API format
-    server_kernel_url=${kernel_library#*com\/}
+    server_kernel_url=${kernel_repo#*com\/}
     server_kernel_url=${server_kernel_url//trunk/contents}
     server_kernel_url="https://api.github.com/repos/${server_kernel_url}"
 
@@ -99,8 +200,8 @@ download_kernel() {
     i=1
     for KERNEL_VAR in ${build_kernel[*]}; do
         if [ ! -d "${kernel_path}/${KERNEL_VAR}" ]; then
-            echo -e "(${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${kernel_library}/${KERNEL_VAR} ]"
-            svn export ${kernel_library}/${KERNEL_VAR} ${kernel_path}/${KERNEL_VAR} --force
+            echo -e "(${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${kernel_repo}/${KERNEL_VAR} ]"
+            svn export ${kernel_repo}/${KERNEL_VAR} ${kernel_path}/${KERNEL_VAR} --force
         else
             echo -e "(${i}) [ ${KERNEL_VAR} ] Kernel is in the local directory."
         fi
@@ -121,7 +222,7 @@ extract_openwrt() {
     mkdir -p ${root_comm}
 
     tar -xzf ${firmware} -C ${root_comm}
-    rm -rf ${root_comm}/lib/modules/*/
+    rm -rf ${root_comm}/lib/modules/*/ 2>/dev/null
     sync
 }
 
@@ -496,19 +597,21 @@ make_image() {
     parted -s ${build_image_file} mkpart primary btrfs $((SKIP_MB + BOOT_MB))M 100% 2>/dev/null
     sync
 
-    loop_setup ${build_image_file}
-    mkfs.vfat -n "BOOT" ${loop}p1 >/dev/null 2>&1
-    mkfs.btrfs -U ${ROOTFS_UUID} -L "ROOTFS" -m single ${loop}p2 >/dev/null 2>&1
+    loop_new=$(losetup -P -f --show "${build_image_file}")
+    [ ${loop_new} ] || error_msg "losetup ${build_image_file} failed."
+
+    mkfs.vfat -n "BOOT" ${loop_new}p1 >/dev/null 2>&1
+    mkfs.btrfs -U ${ROOTFS_UUID} -L "ROOTFS" -m single ${loop_new}p2 >/dev/null 2>&1
     sync
 
     # Write the specified bootloader
     if [[ "${MAINLINE_UBOOT}" != "" && -f "${root}${MAINLINE_UBOOT}" ]]; then
-        dd if=${root}${MAINLINE_UBOOT} of=${loop} bs=1 count=444 conv=fsync 2>/dev/null
-        dd if=${root}${MAINLINE_UBOOT} of=${loop} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
+        dd if=${root}${MAINLINE_UBOOT} of=${loop_new} bs=1 count=444 conv=fsync 2>/dev/null
+        dd if=${root}${MAINLINE_UBOOT} of=${loop_new} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
         #echo -e "${soc}_v${kernel} write Mainline bootloader: ${MAINLINE_UBOOT}"
     elif [[ "${ANDROID_UBOOT}" != "" && -f "${root}${ANDROID_UBOOT}" ]]; then
-        dd if=${root}${ANDROID_UBOOT} of=${loop} bs=1 count=444 conv=fsync 2>/dev/null
-        dd if=${root}${ANDROID_UBOOT} of=${loop} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
+        dd if=${root}${ANDROID_UBOOT} of=${loop_new} bs=1 count=444 conv=fsync 2>/dev/null
+        dd if=${root}${ANDROID_UBOOT} of=${loop_new} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
         #echo -e "${soc}_v${kernel} write Android bootloader: ${ANDROID_UBOOT}"
     fi
     sync
@@ -525,11 +628,11 @@ copy_files() {
     local rootfs="${tmp_path}/${kernel}/${soc}/rootfs"
 
     mkdir -p ${bootfs} ${rootfs} && sync
-    if ! mount ${loop}p1 ${bootfs}; then
-        error_msg "mount ${loop}p1 failed!"
+    if ! mount ${loop_new}p1 ${bootfs}; then
+        error_msg "mount ${loop_new}p1 failed!"
     fi
-    if ! mount ${loop}p2 ${rootfs}; then
-        error_msg "mount ${loop}p2 failed!"
+    if ! mount ${loop_new}p2 ${rootfs}; then
+        error_msg "mount ${loop_new}p2 failed!"
     fi
 
     cp -rf ${boot}/* ${bootfs}
@@ -539,7 +642,7 @@ copy_files() {
     cd ${make_path}
     umount -f ${bootfs} 2>/dev/null
     umount -f ${rootfs} 2>/dev/null
-    losetup -d ${loop} 2>/dev/null
+    losetup -d ${loop_new} 2>/dev/null
     sync
 
     cd ${out_path} && gzip *.img && sync && cd ${make_path}
@@ -557,119 +660,68 @@ clean_tmp() {
     rm -rf ${tmp_path} 2>/dev/null
 }
 
-while [ "${1}" ]; do
-    case "${1}" in
-    -d | --default)
-        : ${build_openwrt:="${build_openwrt}"}
-        : ${build_kernel:="${build_kernel}"}
-        : ${auto_kernel:="${auto_kernel}"}
-        : ${version_branch:="${version_branch}"}
-        : ${ROOT_MB:="${ROOT_MB}"}
-        ;;
-    -b | --buildSoC)
-        if [ -n "${2}" ]; then
-            unset build_openwrt
-            oldIFS=$IFS
-            IFS=_
-            build_openwrt=(${2})
-            IFS=$oldIFS
-            shift
-        else
-            error_msg "Invalid -b parameter [ ${2} ]!"
-        fi
-        ;;
-    -k | --kernel)
-        if [ -n "${2}" ]; then
-            oldIFS=$IFS
-            IFS=_
-            build_kernel=(${2})
-            IFS=$oldIFS
-            shift
-        else
-            error_msg "Invalid -k parameter [ ${2} ]!"
-        fi
-        ;;
-    -a | --autoKernel)
-        if [ -n "${2}" ]; then
-            auto_kernel="${2}"
-            shift
-        else
-            error_msg "Invalid -a parameter [ ${2} ]!"
-        fi
-        ;;
-    -v | --versionBranch)
-        if [ -n "${2}" ]; then
-            version_branch="${2}"
-            shift
-        else
-            error_msg "Invalid -v parameter [ ${2} ]!"
-        fi
-        ;;
-    -s | --size)
-        if [[ -n "${2}" && "${2}" -ge "512" ]]; then
-            ROOT_MB="${2}"
-            shift
-        else
-            error_msg "Invalid -s parameter [ ${2} ]!"
-        fi
-        ;;
-    *)
-        error_msg "Invalid option [ ${1} ]!"
-        ;;
-    esac
-    shift
-done
+loop_make() {
+    cd ${make_path}
+
+    j=1
+    for b in ${build_openwrt[*]}; do
+
+        i=1
+        for k in ${build_kernel[*]}; do
+            {
+                echo -n "(${j}.${i}) Start making OpenWrt [ ${b} - ${k} ]. "
+
+                now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//' | awk -F "." '{print $1}')
+                if [[ "${now_remaining_space}" -le "2" ]]; then
+                    echo "Remaining space is less than 2G, exit this making. \n"
+                    break
+                else
+                    echo "Remaining space is ${now_remaining_space}G."
+                fi
+
+                # The loop variable assignment
+                soc="${b}"
+                kernel="${k}"
+
+                # Execute the following functions in sequence
+                extract_openwrt
+                extract_armbian
+                refactor_files
+                make_image
+                copy_files
+                clean_tmp
+
+                echo -e "(${j}.${i}) OpenWrt made successfully. \n"
+                let i++
+            }
+        done
+
+        let j++
+    done
+
+    # Backup the ${openwrt_path}/${openwrt_file} file
+    cp -f ${openwrt_path}/${openwrt_file} ${out_path} 2>/dev/null && sync
+}
 
 # Show welcome message
+echo -e "Welcome to tools for making Amlogic s9xxx OpenWrt! \n"
 [ $(id -u) = 0 ] || error_msg "please run this script as root: [ sudo ./$0 ]"
-echo -e "Welcome to use the OpenWrt packaging tool!"
-[ "${auto_kernel}" == "true" ] && download_kernel
-#
-echo -e "OpenWrt SoC List: [ $(echo ${build_openwrt[*]} | tr "\n" " ") ]"
-echo -e "Kernel List: [ $(echo ${build_kernel[*]} | tr "\n" " ") ] \n"
+# Show server start information
 echo -e "Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
 echo -e "Server memory usage: \n$(free -h) \n"
 echo -e "Server space usage before starting to compile: \n$(df -hT ${PWD}) \n"
-
-# Start loop compilation
-k=1
-for b in ${build_openwrt[*]}; do
-
-    i=1
-    for x in ${build_kernel[*]}; do
-        {
-            echo -n "(${k}.${i}) Start making OpenWrt [ ${b} - ${x} ]. "
-
-            now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//' | awk -F "." '{print $1}')
-            if [[ "${now_remaining_space}" -le "2" ]]; then
-                echo "Remaining space is less than 2G, exit this making. \n"
-                break 2
-            else
-                echo "Remaining space is ${now_remaining_space}G."
-            fi
-
-            # The loop variable assignment
-            soc=${b}
-            kernel=${x}
-
-            # Execute the following functions in sequence
-            extract_openwrt
-            extract_armbian
-            refactor_files
-            make_image
-            copy_files
-            clean_tmp
-
-            echo -e "(${k}.${i}) OpenWrt made successfully. \n"
-            let i++
-        }
-    done
-
-    let k++
-done
-
-cp -f ${openwrt_path}/*.tar.gz ${out_path} 2>/dev/null && sync
+#
+# Initialize variables and download the kernel
+init_var "${@}"
+find_makefile && echo -e "OpenWrt make file: [ ${openwrt_file} ]"
+[ "${auto_kernel}" == "true" ] && download_kernel
+echo -e "OpenWrt SoC List: [ $(echo ${build_openwrt[*]} | tr "\n" " ") ]"
+echo -e "Kernel List: [ $(echo ${build_kernel[*]} | tr "\n" " ") ] \n"
+# Loop to make OpenWrt firmware
+loop_make
+#
+# Show server end information
 echo -e "Server space usage after compilation: \n$(df -hT ${PWD}) \n"
-
+# All process completed
 wait
 chmod -R 777 ${out_path}
