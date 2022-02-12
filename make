@@ -60,7 +60,7 @@ build_openwrt=("s905x")
 kernel_repo="https://github.com/lasthinker/kernel/tree/main/pub"
 #kernel_repo="https://github.com/lasthinker/kernel/trunk/pub"
 version_branch="stable"
-build_kernel=("5.10.90" "5.4.170")
+build_kernel=("5.10.100" "5.4.180")
 auto_kernel="true"
 #
 # Set OpenWrt firmware size (BOOT_MB >= 256, ROOT_MB >= 512)
