@@ -55,7 +55,7 @@ dtb_path="${amlogic_path}/amlogic-dtb"
 kernel_path="${amlogic_path}/amlogic-kernel"
 uboot_path="${amlogic_path}/amlogic-u-boot"
 configfiles_path="${amlogic_path}/common-files"
-op_release="etc/flippy-openwrt-release" # Add custom openwrt firmware information
+op_release="etc/lasthinker-openwrt-release" # Add custom openwrt firmware information
 build_openwrt=("s905x")
 #
 # Latest kernel download repository

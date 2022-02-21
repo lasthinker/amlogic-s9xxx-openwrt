@@ -1,7 +1,7 @@
 #!/bin/bash
 #======================================================================================
 # Function: Install OpenWrt to emmc for Amlogic S9xxx STB
-# Copyright (C) 2020-2021 Flippy
+# Copyright (C) 2020-2021 Lasthinker
 # Copyright (C) 2020-2021 https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #======================================================================================
 
@@ -51,8 +51,8 @@ MYDEVICE_NAME=$(cat /proc/device-tree/model | tr -d '\000')
 if [[ -z "${MYDEVICE_NAME}" ]]; then
     echo "The device name is empty and cannot be recognized."
     exit 1
-elif [[ ! -f "/etc/flippy-openwrt-release" ]]; then
-    echo "The [ /etc/flippy-openwrt-release ] file is missing."
+elif [[ ! -f "/etc/lasthinker-openwrt-release" ]]; then
+    echo "The [ /etc/lasthinker-openwrt-release ] file is missing."
     exit 1
 else
     echo -e "Current device: ${MYDEVICE_NAME} [ amlogic ]"
@@ -560,21 +560,21 @@ while [ $i -le $max_try ]; do
         echo "Copy complete."
         sync
 
-        echo "Update the relevant parameters of flippy-openwrt-release"
-        sed -i '/FDTFILE/d' etc/flippy-openwrt-release 2>/dev/null
-        echo "FDTFILE='${FDTFILE}'" >>etc/flippy-openwrt-release 2>/dev/null
+        echo "Update the relevant parameters of lasthinker-openwrt-release"
+        sed -i '/FDTFILE/d' etc/lasthinker-openwrt-release 2>/dev/null
+        echo "FDTFILE='${FDTFILE}'" >>etc/lasthinker-openwrt-release 2>/dev/null
 
-        sed -i '/UBOOT_OVERLOAD/d' etc/flippy-openwrt-release 2>/dev/null
-        echo "UBOOT_OVERLOAD='${UBOOT_OVERLOAD}'" >>etc/flippy-openwrt-release 2>/dev/null
+        sed -i '/UBOOT_OVERLOAD/d' etc/lasthinker-openwrt-release 2>/dev/null
+        echo "UBOOT_OVERLOAD='${UBOOT_OVERLOAD}'" >>etc/lasthinker-openwrt-release 2>/dev/null
 
-        sed -i '/MAINLINE_UBOOT/d' etc/flippy-openwrt-release 2>/dev/null
-        echo "MAINLINE_UBOOT='${MAINLINE_UBOOT}'" >>etc/flippy-openwrt-release 2>/dev/null
+        sed -i '/MAINLINE_UBOOT/d' etc/lasthinker-openwrt-release 2>/dev/null
+        echo "MAINLINE_UBOOT='${MAINLINE_UBOOT}'" >>etc/lasthinker-openwrt-release 2>/dev/null
 
-        sed -i '/ANDROID_UBOOT/d' etc/flippy-openwrt-release 2>/dev/null
-        echo "ANDROID_UBOOT='${ANDROID_UBOOT}'" >>etc/flippy-openwrt-release 2>/dev/null
+        sed -i '/ANDROID_UBOOT/d' etc/lasthinker-openwrt-release 2>/dev/null
+        echo "ANDROID_UBOOT='${ANDROID_UBOOT}'" >>etc/lasthinker-openwrt-release 2>/dev/null
 
-        sed -i '/SOC/d' etc/flippy-openwrt-release 2>/dev/null
-        echo "SOC='${AMLOGIC_SOC}'" >>etc/flippy-openwrt-release 2>/dev/null
+        sed -i '/SOC/d' etc/lasthinker-openwrt-release 2>/dev/null
+        echo "SOC='${AMLOGIC_SOC}'" >>etc/lasthinker-openwrt-release 2>/dev/null
         echo "Update complete."
         sync
 

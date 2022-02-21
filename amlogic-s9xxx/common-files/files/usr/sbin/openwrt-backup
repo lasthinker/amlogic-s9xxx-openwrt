@@ -1,7 +1,7 @@
 #!/bin/bash
 #======================================================================
 # Function: Backup and restore config files in the /etc directory
-# Copyright (C) 2020 Flippy
+# Copyright (C) 2020 Lasthinker
 # Copyright (C) 2021 https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #======================================================================
 
@@ -423,7 +423,7 @@ migrate_snapshot() {
                 cp ${SNAPSHOT_PRESTR}etc-000/fstab ${SNAPSHOT_PRESTR}${old_snap_name}/
                 cp ${SNAPSHOT_PRESTR}etc-000/openwrt_release ${SNAPSHOT_PRESTR}${old_snap_name}/
                 cp ${SNAPSHOT_PRESTR}etc-000/openwrt_version ${SNAPSHOT_PRESTR}${old_snap_name}/
-                cp ${SNAPSHOT_PRESTR}etc-000/flippy-openwrt-release ${SNAPSHOT_PRESTR}${old_snap_name}/
+                cp ${SNAPSHOT_PRESTR}etc-000/lasthinker-openwrt-release ${SNAPSHOT_PRESTR}${old_snap_name}/
                 cp ${SNAPSHOT_PRESTR}etc-000/banner ${SNAPSHOT_PRESTR}${old_snap_name}/banner
                 btrfs property set -ts ${SNAPSHOT_PRESTR}${old_snap_name} ro true
                 echo "The migration is complete, if you want to apply the snapshot [ ${old_snap_name} ], please use the restore snapshot function."

@@ -1,7 +1,7 @@
 #!/bin/bash
 #===========================================================================================
 # Function: Update the kernel for OpenWrt (Amlogic)
-# Copyright (C) 2020-2021 Flippy
+# Copyright (C) 2020-2021 Lasthinker
 # Copyright (C) 2020-2021 https://github.com/lasthinker/luci-app-amlogic
 #===========================================================================================
 
@@ -70,8 +70,8 @@ if [ $(ls ${P4_PATH}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 3 ]; then
     if [ $(ls ${P4_PATH}/boot-*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 1 ]; then
         build_boot=$(ls ${P4_PATH}/boot-*.tar.gz | head -n 1) && build_boot=${build_boot##*/}
         echo -e "Update using [ ${build_boot} ] files. Please wait a moment ..."
-        flippy_version=${build_boot/boot-/} && flippy_version=${flippy_version/.tar.gz/}
-        kernel_version=$(echo ${flippy_version} | grep -oE '^[1-9].[0-9]{1,3}.[0-9]+')
+        lasthinker_version=${build_boot/boot-/} && lasthinker_version=${lasthinker_version/.tar.gz/}
+        kernel_version=$(echo ${lasthinker_version} | grep -oE '^[1-9].[0-9]{1,3}.[0-9]+')
         kernel_vermaj=$(echo ${kernel_version} | grep -oE '^[1-9].[0-9]{1,3}')
         k510_ver=${kernel_vermaj%%.*}
         k510_maj=${kernel_vermaj##*.}
@@ -90,14 +90,14 @@ if [ $(ls ${P4_PATH}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 3 ]; then
         error_msg "Have no boot-*.tar.gz file found in the ${P4_PATH} directory."
     fi
 
-    if [[ -f ${P4_PATH}/dtb-${MYDTB_FILE}-${flippy_version}.tar.gz ]]; then
-        build_dtb="dtb-${MYDTB_FILE}-${flippy_version}.tar.gz"
+    if [[ -f ${P4_PATH}/dtb-${MYDTB_FILE}-${lasthinker_version}.tar.gz ]]; then
+        build_dtb="dtb-${MYDTB_FILE}-${lasthinker_version}.tar.gz"
     else
-        error_msg "Have no dtb-${MYDTB_FILE}-${flippy_version}.tar.gz file."
+        error_msg "Have no dtb-${MYDTB_FILE}-${lasthinker_version}.tar.gz file."
     fi
 
-    if [ -f ${P4_PATH}/modules-${flippy_version}.tar.gz ]; then
-        build_modules="modules-${flippy_version}.tar.gz"
+    if [ -f ${P4_PATH}/modules-${lasthinker_version}.tar.gz ]; then
+        build_modules="modules-${lasthinker_version}.tar.gz"
     else
         error_msg "Have no modules-*.tar.gz file found in the ${P4_PATH} directory."
     fi
@@ -107,7 +107,7 @@ if [ $(ls ${P4_PATH}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 3 ]; then
     build_boot: ${build_boot} \n \
     build_dtb: ${build_dtb} \n \
     build_modules: ${build_modules} \n \
-    flippy_version: ${flippy_version} \n \
+    lasthinker_version: ${lasthinker_version} \n \
     kernel_version: ${kernel_version} \n \
     K510: ${K510}"
 
@@ -134,9 +134,9 @@ fi
 # Check version consistency from amlogic s9xxx
 if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
     echo -e "Update to kernel 5.10 or higher and install U-BOOT."
-    if [ -f "/etc/flippy-openwrt-release" ]; then
+    if [ -f "/etc/lasthinker-openwrt-release" ]; then
         # U-BOOT adaptation
-        source /etc/flippy-openwrt-release 2>/dev/null
+        source /etc/lasthinker-openwrt-release 2>/dev/null
         UBOOT_OVERLOAD="${UBOOT_OVERLOAD}"
         MAINLINE_UBOOT="${MAINLINE_UBOOT//\/lib\/u-boot\//}"
 
@@ -158,7 +158,7 @@ if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
             fi
         fi
     else
-        error_msg "The /etc/flippy-openwrt-release file is missing and cannot be update."
+        error_msg "The /etc/lasthinker-openwrt-release file is missing and cannot be update."
     fi
 
     # Copy u-boot.ext and u-boot.emmc
@@ -179,19 +179,19 @@ if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
     fi
 fi
 
-echo -e "Unpack [ ${flippy_version} ] related files ..."
+echo -e "Unpack [ ${lasthinker_version} ] related files ..."
 
 # 01. for /boot five files
 rm -f /boot/config-* /boot/initrd.img-* /boot/System.map-* /boot/uInitrd-* /boot/vmlinuz-* 2>/dev/null && sync
 rm -f /boot/uInitrd /boot/zImage /boot/Image 2>/dev/null && sync
 tar -xzf ${P4_PATH}/${build_boot} -C /boot && sync
 
-if [[ -f "/boot/uInitrd-${flippy_version}" ]]; then
+if [[ -f "/boot/uInitrd-${lasthinker_version}" ]]; then
     i=1
     max_try=10
     while [ "${i}" -le "${max_try}" ]; do
-        cp -f /boot/uInitrd-${flippy_version} /boot/uInitrd 2>/dev/null && sync
-        uInitrd_original=$(md5sum /boot/uInitrd-${flippy_version} | awk '{print $1}')
+        cp -f /boot/uInitrd-${lasthinker_version} /boot/uInitrd 2>/dev/null && sync
+        uInitrd_original=$(md5sum /boot/uInitrd-${lasthinker_version} | awk '{print $1}')
         uInitrd_new=$(md5sum /boot/uInitrd | awk '{print $1}')
         if [[ "${uInitrd_original}" == "${uInitrd_new}" ]]; then
             echo -e "Unpack [ /boot/uInitrd ] complete."
@@ -202,17 +202,17 @@ if [[ -f "/boot/uInitrd-${flippy_version}" ]]; then
             continue
         fi
     done
-    [ "${i}" -eq "10" ] && error_msg "/boot/uInitrd-${flippy_version} file copy failed."
+    [ "${i}" -eq "10" ] && error_msg "/boot/uInitrd-${lasthinker_version} file copy failed."
 else
-    error_msg "/boot/uInitrd-${flippy_version} file is missing."
+    error_msg "/boot/uInitrd-${lasthinker_version} file is missing."
 fi
 
-if [[ -f "/boot/vmlinuz-${flippy_version}" ]]; then
+if [[ -f "/boot/vmlinuz-${lasthinker_version}" ]]; then
     i=1
     max_try=10
     while [ "${i}" -le "${max_try}" ]; do
-        cp -f /boot/vmlinuz-${flippy_version} /boot/${MYBOOT_VMLINUZ} 2>/dev/null && sync
-        vmlinuz_original=$(md5sum /boot/vmlinuz-${flippy_version} | awk '{print $1}')
+        cp -f /boot/vmlinuz-${lasthinker_version} /boot/${MYBOOT_VMLINUZ} 2>/dev/null && sync
+        vmlinuz_original=$(md5sum /boot/vmlinuz-${lasthinker_version} | awk '{print $1}')
         vmlinuz_new=$(md5sum /boot/${MYBOOT_VMLINUZ} | awk '{print $1}')
         if [[ "${vmlinuz_original}" == "${vmlinuz_new}" ]]; then
             echo -e "Unpack [ /boot/${MYBOOT_VMLINUZ} ] complete."
@@ -223,13 +223,13 @@ if [[ -f "/boot/vmlinuz-${flippy_version}" ]]; then
             continue
         fi
     done
-    [ "${i}" -eq "10" ] && error_msg "/boot/vmlinuz-${flippy_version} file copy failed."
+    [ "${i}" -eq "10" ] && error_msg "/boot/vmlinuz-${lasthinker_version} file copy failed."
 else
-    error_msg "/boot/vmlinuz-${flippy_version} file is missing."
+    error_msg "/boot/vmlinuz-${lasthinker_version} file is missing."
 fi
 
-[ -f "/boot/config-${flippy_version}" ] || error_msg "/boot/config-${flippy_version} file is missing."
-[ -f "/boot/System.map-${flippy_version}" ] || error_msg "/boot/System.map-${flippy_version} file is missing."
+[ -f "/boot/config-${lasthinker_version}" ] || error_msg "/boot/config-${lasthinker_version} file is missing."
+[ -f "/boot/System.map-${lasthinker_version}" ] || error_msg "/boot/System.map-${lasthinker_version} file is missing."
 
 echo -e "01. Unpack [ ${build_boot} ] complete."
 sleep 3
@@ -237,8 +237,8 @@ sleep 3
 # 02 for /boot/dtb/${MYDTB_FILE}/*
 [ -d /boot/dtb/${MYDTB_FILE} ] || mkdir -p /boot/dtb/${MYDTB_FILE}
 if [[ "${MYDTB_FILE}" == "rockchip" ]]; then
-    mkdir -p /boot/dtb-${flippy_version}/${MYDTB_FILE}
-    ln -sf /boot/dtb-${flippy_version} /boot/dtb
+    mkdir -p /boot/dtb-${lasthinker_version}/${MYDTB_FILE}
+    ln -sf /boot/dtb-${lasthinker_version} /boot/dtb
 fi
 tar -xzf ${P4_PATH}/${build_dtb} -C /boot/dtb/${MYDTB_FILE} && sync
 [ "$(ls /boot/dtb/${MYDTB_FILE} -l 2>/dev/null | grep "^-" | wc -l)" -ge "1" ] || error_msg "/boot/dtb/${MYDTB_FILE} file is missing."
@@ -248,7 +248,7 @@ sleep 3
 # 03 for /lib/modules/*
 rm -rf /lib/modules/* 2>/dev/null && sync
 tar -xzf ${P4_PATH}/${build_modules} -C /lib/modules && sync
-cd /lib/modules/${flippy_version}/
+cd /lib/modules/${lasthinker_version}/
 rm -f *.ko 2>/dev/null
 find ./ -type f -name '*.ko' -exec ln -s {} ./ \;
 sync && sleep 3
@@ -262,13 +262,13 @@ sleep 3
 rm -rf ${P4_PATH}/dtb-*.tar.gz ${P4_PATH}/boot-*.tar.gz ${P4_PATH}/modules-*.tar.gz 2>/dev/null
 sync
 
-sed -i '/KERNEL_VERSION/d' /etc/flippy-openwrt-release 2>/dev/null
-echo "KERNEL_VERSION='${kernel_version}'" >>/etc/flippy-openwrt-release 2>/dev/null
+sed -i '/KERNEL_VERSION/d' /etc/lasthinker-openwrt-release 2>/dev/null
+echo "KERNEL_VERSION='${kernel_version}'" >>/etc/lasthinker-openwrt-release 2>/dev/null
 
-sed -i '/K510/d' /etc/flippy-openwrt-release 2>/dev/null
-echo "K510='${K510}'" >>/etc/flippy-openwrt-release 2>/dev/null
+sed -i '/K510/d' /etc/lasthinker-openwrt-release 2>/dev/null
+echo "K510='${K510}'" >>/etc/lasthinker-openwrt-release 2>/dev/null
 
-sed -i "s/ Kernel.*/ Kernel: ${flippy_version}/g" /etc/banner 2>/dev/null
+sed -i "s/ Kernel.*/ Kernel: ${lasthinker_version}/g" /etc/banner 2>/dev/null
 
 sync
 wait
