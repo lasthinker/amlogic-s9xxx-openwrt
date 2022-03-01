@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       kernel_repo:
-        description: "Source: kernel.org / unifreq"
+        description: "Source: kernel.org / lasthinker"
         required: false
-        default: "unifreq"
+        default: "lasthinker"
       kernel_version:
         description: "Kernel version: 5.4.180"
         required: false

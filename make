@@ -9,8 +9,7 @@
 # https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
 # Description: Automatically Packaged OpenWrt for Amlogic s9xxx tv box
-# Copyright (C) 2020- https://github.com/unifreq
-# Copyright (C) 2020- https://github.com/tuanqing/mknop
+#
 # Copyright (C) 2020- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
 #===== Install the basic packages of make openwrt for Ubuntu 20.04 ======
