@@ -5,10 +5,9 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-# This file is a part of the make OpenWrt for Amlogic s9xxx tv box
-# https://github.com/lasthinker/amlogic-s9xxx-openwrt
+# This file is a part of the make OpenWrt for Amlogic S905X
 #
-# Description: Automatically Packaged OpenWrt for Amlogic s9xxx tv box
+# Description: Automatically Packaged OpenWrt for Amlogic S905X
 #
 # Copyright (C) 2020- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
@@ -278,6 +277,12 @@ confirm_version() {
         MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin"
         ANDROID_UBOOT=""
         ;;
+    s905l3a | e900v22c | e900v22d)
+        FDTFILE="meson-g12a-u200.dtb"
+        UBOOT_OVERLOAD="u-boot-u200.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
     s905x | hg680p | b860h)
         FDTFILE="meson-gxl-s905x-p212.dtb"
         UBOOT_OVERLOAD="u-boot-p212.bin"
@@ -303,8 +308,9 @@ confirm_version() {
         ANDROID_UBOOT=""
         ;;
     s905 | beelinkminimx | mxqpro+)
-        FDTFILE="meson-gxbb-vega-s95-telos.dtb"
+        FDTFILE="meson-gxbb-beelink-mini-mx.dtb"
         #FDTFILE="meson-gxbb-mxq-pro-plus.dtb"
+        #FDTFILE="meson-gxbb-vega-s95-telos.dtb"
         UBOOT_OVERLOAD="u-boot-s905.bin"
         #UBOOT_OVERLOAD="u-boot-p201.bin"
         MAINLINE_UBOOT=""
@@ -328,7 +334,7 @@ confirm_version() {
         MAINLINE_UBOOT="gtkingpro-u-boot.bin.sd.bin"
         ANDROID_UBOOT=""
         ;;
-    s922x-n2 | odroid-n2 | n2)
+    s922x-n2 | odroid-n2)
         FDTFILE="meson-g12b-odroid-n2.dtb"
         UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
         MAINLINE_UBOOT="odroid-n2-u-boot.bin.sd.bin"
@@ -340,7 +346,7 @@ confirm_version() {
         MAINLINE_UBOOT=""
         ANDROID_UBOOT=""
         ;;
-    a311d | khadas-vim3 | vim3)
+    a311d | khadas-vim3)
         FDTFILE="meson-g12b-a311d-khadas-vim3.dtb"
         UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
         MAINLINE_UBOOT="khadas-vim3-u-boot.sd.bin"

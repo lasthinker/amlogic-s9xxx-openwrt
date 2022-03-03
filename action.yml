@@ -1,6 +1,6 @@
 name: 'Use lasthinker script to package Armvirt as OpenWrt'
 author: 'lasthinker'
-description: 'Package Armvirt as OpenWrt. Support Amlogic S9xxx STB.'
+description: 'Package Armvirt as OpenWrt. Support Amlogic S905X.'
 inputs:
   mode:
     description: 'Choose script.'

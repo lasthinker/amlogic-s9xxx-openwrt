@@ -16,7 +16,7 @@ on:
       kernel_version:
         description: "Kernel version: 5.4.180"
         required: false
-        default: "5.4.180_5.15.25"
+        default: "5.4.180"
       kernel_auto:
         description: "Auto use the latest kernel"
         required: false
@@ -54,7 +54,7 @@ jobs:
           sudo timedatectl set-timezone "$TZ"
           echo "COMPILE_STARTINGTIME=$(date +"%m.%d.%H%M")" >> $GITHUB_ENV
 
-      - name: Compile the kernel for Amlogic s9xxx
+      - name: Compile the kernel for Amlogic S905X
         uses: lasthinker/amlogic-s9xxx-armbian@main
         with:
           build_target: kernel

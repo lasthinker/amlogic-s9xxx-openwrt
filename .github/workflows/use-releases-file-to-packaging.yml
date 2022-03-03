@@ -58,7 +58,7 @@ jobs:
         allowUpdates: true
         token: ${{ secrets.GITHUB_TOKEN }}
         body: |
-          This is OpenWrt firmware for Amlogic S905X STB
+          This is OpenWrt firmware for Amlogic S905X
           * Firmware information
           Default IP: 192.168.2.1
           Default username: root
