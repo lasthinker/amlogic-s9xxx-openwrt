@@ -170,6 +170,7 @@ download_depends() {
     if [[ ${depends_repo} == http* && $(echo ${depends_repo} | grep "tree/main") != "" ]]; then
         depends_repo="${depends_repo//tree\/main/trunk}"
     fi
+    svn export ${depends_repo}/amlogic-armbian ${armbian_path} --force
     svn export ${depends_repo}/amlogic-dtb ${dtb_path} --force
     svn export ${depends_repo}/amlogic-u-boot ${uboot_path} --force
 
@@ -619,7 +620,7 @@ make_image() {
     [ ${loop_new} ] || error_msg "losetup ${build_image_file} failed."
 
     mkfs.vfat -n "BOOT" ${loop_new}p1 >/dev/null 2>&1
-    mkfs.btrfs -U ${ROOTFS_UUID} -L "ROOTFS" -m single ${loop_new}p2 >/dev/null 2>&1
+    mkfs.btrfs -f -U ${ROOTFS_UUID} -L "ROOTFS" -m single ${loop_new}p2 >/dev/null 2>&1
     sync
 
     # Write the specified bootloader
