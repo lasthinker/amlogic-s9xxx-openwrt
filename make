@@ -348,6 +348,12 @@ confirm_version() {
         MAINLINE_UBOOT=""
         ANDROID_UBOOT=""
         ;;
+    s912-m8s | s912-m8s-pro)
+        FDTFILE="meson-gxm-q201.dtb"
+        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
     s922x | belink | belinkpro | ugoos)
         FDTFILE="meson-g12b-gtking-pro.dtb"
         UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
