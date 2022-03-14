@@ -15,7 +15,7 @@ sed -i 's/luci-theme-bootstrap/luci-theme-material/g' ./feeds/luci/collections/l
 sed -i 's/TARGET_rockchip/TARGET_rockchip\|\|TARGET_armvirt/g' package/lean/autocore/Makefile
 
 # Set etc/openwrt_release
-sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='V.$(date +%Y.%m.%d)'|g" package/lean/default-settings/files/zzz-default-settings
+sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='$(date +%Y.%m.%d)'|g" package/lean/default-settings/files/zzz-default-settings
 echo "DISTRIB_SOURCECODE='lasthinker'" >>package/base-files/files/etc/openwrt_release
 
 # Modify default IP（FROM 192.168.1.1 CHANGE TO 192.168.2.1）
