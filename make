@@ -55,6 +55,7 @@ kernel_path="${amlogic_path}/amlogic-kernel"
 uboot_path="${amlogic_path}/amlogic-u-boot"
 configfiles_path="${amlogic_path}/common-files"
 openvfd_path="${configfiles_path}/files/usr/share/openvfd"
+boot_patches_path="${configfiles_path}/patches/boot"
 # Add custom openwrt firmware information
 op_release="etc/lasthinker-openwrt-release"
 # Dependency files download repository
@@ -192,6 +193,12 @@ download_depends() {
         svn up ${uboot_path} --force
     else
         svn co ${depends_repo}/amlogic-u-boot ${uboot_path} --force
+    fi
+    # Sync boot patches files
+    if [ -d "${boot_patches_path}" ]; then
+        svn up ${boot_patches_path} --force
+    else
+        svn co ${depends_repo}/common-files/patches/boot ${boot_patches_path} --force
     fi
     # Sync openvfd related files
     if [ -d "${openvfd_path}" ]; then
@@ -619,17 +626,17 @@ EOF
 
     cd ${boot}
 
-    # Edit the uEnv.txt
-    if [ ! -f "uEnv.txt" ]; then
-        error_msg "The uEnv.txt File does not exist"
+    # Edit the uEnv.txt (s912-t95z-plus is /boot/extlinux/extlinux.conf)
+    if [[ "${soc}" == *s912-t95z* ]]; then
+        boot_conf_file="extlinux/extlinux.conf"
+        cp -rf ${configfiles_path}/patches/boot/s912-t95z-plus/* . && sync
     else
-        old_fdt_dtb="meson-gxl-s905d-phicomm-n1.dtb"
-        sed -i "s/${old_fdt_dtb}/${FDTFILE}/g" uEnv.txt
-        sed -i "s/LABEL=ROOTFS/UUID=${ROOTFS_UUID}/g" uEnv.txt
+        boot_conf_file="uEnv.txt"
     fi
-
-    # For s912-t95z-plus /boot/extlinux/extlinux.conf
-    [ "${FDTFILE}" == "meson-gxm-t95z-plus.dtb" ] && cp -rf ${configfiles_path}/patches/boot/s912-t95z-plus/* . && sync
+    #
+    [ -f "${boot_conf_file}" ] || error_msg "The [ ${boot_conf_file} ] file does not exist."
+    sed -i "s|LABEL=ROOTFS|UUID=${ROOTFS_UUID}|g" ${boot_conf_file}
+    sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
 
     # Add u-boot.ext for 5.10 kernel
     if [[ "${K510}" -eq "1" && -n "${UBOOT_OVERLOAD}" ]]; then
