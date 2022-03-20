@@ -56,7 +56,6 @@ uboot_path="${amlogic_path}/amlogic-u-boot"
 configfiles_path="${amlogic_path}/common-files"
 openvfd_path="${configfiles_path}/files/usr/share/openvfd"
 bootfs_patches_path="${configfiles_path}/patches/bootfs"
-extlinux_patch="${configfiles_path}/patches/apply_patch/openwrt-install-update-script-for-extlinux.patch"
 # Add custom openwrt firmware information
 op_release="etc/lasthinker-openwrt-release"
 # Dependency files download repository
@@ -358,12 +357,6 @@ confirm_version() {
         MAINLINE_UBOOT=""
         ANDROID_UBOOT=""
         ;;
-    s912-t95z | s912-t95z-plus)
-        FDTFILE="meson-gxm-t95z-plus.dtb"
-        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
     s912-m8s | s912-m8s-pro)
         FDTFILE="meson-gxm-q201.dtb"
         UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
@@ -627,16 +620,8 @@ EOF
 
     cd ${boot}
 
-    # Edit the uEnv.txt (s912-t95z-plus is /boot/extlinux/extlinux.conf)
-    if [[ "${soc}" == *s912-t95z* ]]; then
-        boot_conf_file="extlinux/extlinux.conf"
-        cp -rf ${configfiles_path}/patches/bootfs/extlinux .
-        (cd ${root} && patch -p1 <${extlinux_patch} >/dev/null)
-    else
-        boot_conf_file="uEnv.txt"
-        cp -f ${configfiles_path}/patches/bootfs/uEnv.txt .
-    fi
-    #
+    cp -f ${configfiles_path}/patches/bootfs/uEnv.txt .
+    boot_conf_file="uEnv.txt"
     [ -f "${boot_conf_file}" ] || error_msg "The [ ${boot_conf_file} ] file does not exist."
     sed -i "s|LABEL=ROOTFS|UUID=${ROOTFS_UUID}|g" ${boot_conf_file}
     sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
