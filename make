@@ -55,7 +55,8 @@ kernel_path="${amlogic_path}/amlogic-kernel"
 uboot_path="${amlogic_path}/amlogic-u-boot"
 configfiles_path="${amlogic_path}/common-files"
 openvfd_path="${configfiles_path}/files/usr/share/openvfd"
-boot_patches_path="${configfiles_path}/patches/boot"
+bootfs_patches_path="${configfiles_path}/patches/bootfs"
+extlinux_patch="${configfiles_path}/patches/apply_patch/openwrt-install-update-script-for-extlinux.patch"
 # Add custom openwrt firmware information
 op_release="etc/lasthinker-openwrt-release"
 # Dependency files download repository
@@ -195,10 +196,10 @@ download_depends() {
         svn co ${depends_repo}/amlogic-u-boot ${uboot_path} --force
     fi
     # Sync boot patches files
-    if [ -d "${boot_patches_path}" ]; then
-        svn up ${boot_patches_path} --force
+    if [ -d "${bootfs_patches_path}" ]; then
+        svn up ${bootfs_patches_path} --force
     else
-        svn co ${depends_repo}/common-files/patches/boot ${boot_patches_path} --force
+        svn co ${depends_repo}/common-files/patches/bootfs ${bootfs_patches_path} --force
     fi
     # Sync openvfd related files
     if [ -d "${openvfd_path}" ]; then
@@ -629,9 +630,11 @@ EOF
     # Edit the uEnv.txt (s912-t95z-plus is /boot/extlinux/extlinux.conf)
     if [[ "${soc}" == *s912-t95z* ]]; then
         boot_conf_file="extlinux/extlinux.conf"
-        cp -rf ${configfiles_path}/patches/boot/s912-t95z-plus/* . && sync
+        cp -rf ${configfiles_path}/patches/bootfs/extlinux .
+        (cd ${root} && patch -p1 <${extlinux_patch} >/dev/null)
     else
         boot_conf_file="uEnv.txt"
+        cp -f ${configfiles_path}/patches/bootfs/uEnv.txt .
     fi
     #
     [ -f "${boot_conf_file}" ] || error_msg "The [ ${boot_conf_file} ] file does not exist."

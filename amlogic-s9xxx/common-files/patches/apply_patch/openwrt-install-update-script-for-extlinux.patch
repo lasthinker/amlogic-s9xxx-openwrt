@@ -1,0 +1,86 @@
+diff -uNr old/usr/sbin/openwrt-install new/usr/sbin/openwrt-install
+--- old/usr/sbin/openwrt-install	2022-03-20 11:48:36.395497422 +0800
++++ new/usr/sbin/openwrt-install	2022-03-20 12:42:57.000000000 +0800
+@@ -498,13 +498,28 @@
+         (cd /boot && tar cf - .) | tar xf -
+         sync
+ 
+-        echo "Edit uEnv.txt ..."
+-        cat >uEnv.txt <<EOF
+-LINUX=/zImage
+-INITRD=/uInitrd
+-FDT=/dtb/amlogic/${FDTFILE}
+-APPEND=root=UUID=${ROOTFS1_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+-EOF
++        # ====== patch starts ======
++        # Edit the uEnv.txt (s912-t95z-plus is /boot/extlinux/extlinux.conf)
++        if [[ "${FDTFILE}" == "meson-gxm-t95z-plus.dtb" ]]; then
++            boot_conf_file="extlinux/extlinux.conf"
++        else
++            boot_conf_file="uEnv.txt"
++        fi
++        echo "The boot file is [ ${boot_conf_file} ]"
++        #
++        #Get the current UUID, such as [ UUID=dc20e16b-1234-5678-a636-7945a906d0c6 ]
++        CURRENT_ROOTFS_UUID="$(cat ${boot_conf_file} 2>/dev/null | grep -oE "APPEND.*" | sed -e 's/^.*root=//' -e 's/ .*$//')"
++        [ -z "${CURRENT_ROOTFS_UUID}" ] && echo "The current UUID is invalid, cannot continue." && exit 1
++        echo "CURRENT_ROOTFS_UUID: ${CURRENT_ROOTFS_UUID}"
++        #
++        if [[ -f "${boot_conf_file}" ]]; then
++            sed -i "s|${CURRENT_ROOTFS_UUID}|UUID=${ROOTFS1_UUID}|g" ${boot_conf_file}
++            sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
++        else
++            echo "The boot file [ ${boot_conf_file} ] does not exist."
++            exit 1
++        fi
++        # ====== patch end ======
+ 
+         rm -f s905_autoscript* aml_autoscript*
+ 
+diff -uNr old/usr/sbin/openwrt-update new/usr/sbin/openwrt-update
+--- old/usr/sbin/openwrt-update-amlogic	2022-03-20 11:48:36.395497422 +0800
++++ new/usr/sbin/openwrt-update-amlogic	2022-03-20 12:44:12.000000000 +0800
+@@ -805,23 +805,28 @@
+ 
+ sync
+ 
+-echo "Update boot parameters ... "
+-if [ -f /tmp/uEnv.txt ]; then
+-    lines=$(wc -l </tmp/uEnv.txt)
+-    lines=$((lines - 1))
+-    head -n $lines /tmp/uEnv.txt >uEnv.txt
+-    cat >>uEnv.txt <<EOF
+-APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+-EOF
++# ====== patch starts ======
++# Edit the uEnv.txt (s912-t95z-plus is /boot/extlinux/extlinux.conf)
++if [[ "${CUR_FDTFILE}" == "meson-gxm-t95z-plus.dtb" ]]; then
++    boot_conf_file="extlinux/extlinux.conf"
+ else
+-    cat >uEnv.txt <<EOF
+-LINUX=/zImage
+-INITRD=/uInitrd
+-FDT=${CUR_FDTFILE}
+-APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+-EOF
++    boot_conf_file="uEnv.txt"
+ fi
+-sync
++echo "The boot file is [ ${boot_conf_file} ]"
++#
++#Get the current UUID, such as [ UUID=dc20e16b-1234-5678-a636-7945a906d0c6 ]
++CURRENT_ROOTFS_UUID="$(cat ${boot_conf_file} 2>/dev/null | grep -oE "APPEND.*" | sed -e 's/^.*root=//' -e 's/ .*$//')"
++[ -z "${CURRENT_ROOTFS_UUID}" ] && echo "The current UUID is invalid, cannot continue." && exit 1
++echo "CURRENT_ROOTFS_UUID: ${CURRENT_ROOTFS_UUID}"
++#
++if [[ -f "${boot_conf_file}" ]]; then
++    sed -i "s|${CURRENT_ROOTFS_UUID}|UUID=${NEW_ROOT_UUID}|g" ${boot_conf_file}
++    sed -i "s|meson.*.dtb|${CUR_FDTFILE}|g" ${boot_conf_file}
++else
++    echo "The boot file [ ${boot_conf_file} ] does not exist."
++    exit 1
++fi
++# ====== patch end ======
+ 
+ cd $WORK_DIR
+ umount -f ${P1} ${P2} 2>/dev/null
