@@ -53,8 +53,7 @@ armbian_path="${amlogic_path}/amlogic-armbian"
 kernel_path="${amlogic_path}/amlogic-kernel"
 uboot_path="${amlogic_path}/amlogic-u-boot"
 configfiles_path="${amlogic_path}/common-files"
-openvfd_path="${configfiles_path}/files/usr/share/openvfd"
-bootfs_patches_path="${configfiles_path}/patches/bootfs"
+openvfd_path="${configfiles_path}/rootfs/usr/share/openvfd"
 # Add custom openwrt firmware information
 op_release="etc/lasthinker-openwrt-release"
 # Dependency files download repository
@@ -187,17 +186,11 @@ download_depends() {
     else
         svn co ${depends_repo}/amlogic-u-boot ${uboot_path} --force
     fi
-    # Sync boot patches files
-    if [ -d "${bootfs_patches_path}" ]; then
-        svn up ${bootfs_patches_path} --force
-    else
-        svn co ${depends_repo}/common-files/patches/bootfs ${bootfs_patches_path} --force
-    fi
     # Sync openvfd related files
     if [ -d "${openvfd_path}" ]; then
         svn up ${openvfd_path} --force
     else
-        svn co ${depends_repo}/common-files/files/usr/share/openvfd ${openvfd_path} --force
+        svn co ${depends_repo}/common-files/rootfs/usr/share/openvfd ${openvfd_path} --force
     fi
 
     # Convert script library address to svn format
@@ -205,7 +198,7 @@ download_depends() {
         script_repo="${script_repo//tree\/main/trunk}"
     fi
     # Sync install/update and other related files
-    svn export ${script_repo} ${configfiles_path}/files/usr/sbin --force
+    svn export ${script_repo} ${configfiles_path}/rootfs/usr/sbin --force
 
     sync
 }
@@ -450,7 +443,7 @@ refactor_files() {
     cd ${make_path}
 
     # Complete file for ${root}: [ /etc ], [ /usr ] etc.
-    [ "$(ls ${configfiles_path}/files 2>/dev/null | wc -w)" -ne "0" ] && cp -rf ${configfiles_path}/files/* ${root}
+    [ "$(ls ${configfiles_path}/rootfs 2>/dev/null | wc -w)" -ne "0" ] && cp -rf ${configfiles_path}/rootfs/* ${root}
     sync
 
     cd ${root}
@@ -612,8 +605,8 @@ EOF
 
     cd ${boot}
 
-    cp -f ${configfiles_path}/patches/bootfs/uEnv.txt .
     boot_conf_file="uEnv.txt"
+    cp -f ${configfiles_path}/bootfs/${boot_conf_file} .
     [ -f "${boot_conf_file}" ] || error_msg "The [ ${boot_conf_file} ] file does not exist."
     sed -i "s|LABEL=ROOTFS|UUID=${ROOTFS_UUID}|g" ${boot_conf_file}
     sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
