@@ -626,13 +626,11 @@ EOF
     sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
 
     # Add u-boot.ext for 5.10 kernel
-    if [[ "${K510}" -eq "1" ]]; then
-        if [[ -n "${UBOOT_OVERLOAD}" && -f "${UBOOT_OVERLOAD}" ]]; then
-            cp -f ${UBOOT_OVERLOAD} u-boot.ext
-            chmod +x u-boot.ext
-        else
-            error_msg "${kernel} have no the 5.10 kernel u-boot file: [ ${UBOOT_OVERLOAD} ]"
-        fi
+    if [[ -n "${UBOOT_OVERLOAD}" && -f "${UBOOT_OVERLOAD}" ]]; then
+        cp -f ${UBOOT_OVERLOAD} u-boot.ext
+        chmod +x u-boot.ext
+    elif [[ "${K510}" -eq "1" ]] && [[ -z "${UBOOT_OVERLOAD}" || ! -f "${UBOOT_OVERLOAD}" ]]; then
+        error_msg "${soc} SoC does not support using ${kernel} kernel, missing u-boot."
     fi
     sync
 }
@@ -652,8 +650,8 @@ make_image() {
     dd if=/dev/zero of=${build_image_file} bs=1M count=${IMG_SIZE} conv=fsync 2>/dev/null && sync
 
     parted -s ${build_image_file} mklabel msdos 2>/dev/null
-    parted -s ${build_image_file} mkpart primary fat32 $((SKIP_MB))M $((SKIP_MB + BOOT_MB - 1))M 2>/dev/null
-    parted -s ${build_image_file} mkpart primary btrfs $((SKIP_MB + BOOT_MB))M 100% 2>/dev/null
+    parted -s ${build_image_file} mkpart primary fat32 $((SKIP_MB))MiB $((SKIP_MB + BOOT_MB - 1))MiB 2>/dev/null
+    parted -s ${build_image_file} mkpart primary btrfs $((SKIP_MB + BOOT_MB))MiB 100% 2>/dev/null
     sync
 
     loop_new=$(losetup -P -f --show "${build_image_file}")
@@ -664,16 +662,14 @@ make_image() {
     sync
 
     # Write the specified bootloader
-    if [[ "${K510}" -eq "1" ]]; then
-        if [[ "${MAINLINE_UBOOT}" != "" && -f "${root}/lib/u-boot/${MAINLINE_UBOOT}" ]]; then
-            dd if="${root}/lib/u-boot/${MAINLINE_UBOOT}" of="${loop_new}" bs=1 count=444 conv=fsync 2>/dev/null
-            dd if="${root}/lib/u-boot/${MAINLINE_UBOOT}" of="${loop_new}" bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
-            #echo -e "${soc}_v${kernel} write Mainline bootloader: ${MAINLINE_UBOOT}"
-        elif [[ "${ANDROID_UBOOT}" != "" && -f "${root}/lib/u-boot/${ANDROID_UBOOT}" ]]; then
-            dd if="${root}/lib/u-boot/${ANDROID_UBOOT}" of="${loop_new}" bs=1 count=444 conv=fsync 2>/dev/null
-            dd if="${root}/lib/u-boot/${ANDROID_UBOOT}" of="${loop_new}" bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
-            #echo -e "${soc}_v${kernel} write Android bootloader: ${ANDROID_UBOOT}"
-        fi
+    if [[ "${MAINLINE_UBOOT}" != "" && -f "${root}/lib/u-boot/${MAINLINE_UBOOT}" ]]; then
+        dd if="${root}/lib/u-boot/${MAINLINE_UBOOT}" of="${loop_new}" bs=1 count=444 conv=fsync 2>/dev/null
+        dd if="${root}/lib/u-boot/${MAINLINE_UBOOT}" of="${loop_new}" bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
+        #echo -e "${soc}_v${kernel} write Mainline bootloader: ${MAINLINE_UBOOT}"
+    elif [[ "${ANDROID_UBOOT}" != "" && -f "${root}/lib/u-boot/${ANDROID_UBOOT}" ]]; then
+        dd if="${root}/lib/u-boot/${ANDROID_UBOOT}" of="${loop_new}" bs=1 count=444 conv=fsync 2>/dev/null
+        dd if="${root}/lib/u-boot/${ANDROID_UBOOT}" of="${loop_new}" bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
+        #echo -e "${soc}_v${kernel} write Android bootloader: ${ANDROID_UBOOT}"
     fi
     sync
 }
