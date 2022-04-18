@@ -14,9 +14,9 @@ on:
         required: false
         default: "lasthinker"
       kernel_version:
-        description: "Kernel version: 5.4.180"
+        description: "Kernel version: 5.10.100"
         required: false
-        default: "5.4.180"
+        default: "5.10.100"
       kernel_auto:
         description: "Auto use the latest kernel"
         required: false
@@ -48,7 +48,7 @@ jobs:
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo -E apt-get -qq update
-          sudo -E apt-get -qq install $(curl -fsSL git.io/ubuntu-2004-server)
+          sudo -E apt-get -qq install $(curl -fsSL https://raw.githubusercontent.com/lasthinker/amlogic-s9xxx-armbian/main/compile-kernel/tools/script/ubuntu2004-armbian-depends)
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "$TZ"

@@ -11,11 +11,6 @@
 #
 # Copyright (C) 2020- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
-#======= Install the basic packages of make openwrt for Ubuntu 20.04 =======
-#
-# sudo apt-get update -y
-# sudo apt-get full-upgrade -y
-# sudo apt-get install -y $(curl -fsSL git.io/ubuntu-2004-openwrt)
 #
 # Command: sudo ./make -d
 # Command optional parameters please refer to the source code repository
@@ -66,7 +61,7 @@ script_repo="https://github.com/lasthinker/luci-app-amlogic/tree/main/luci-app-a
 kernel_repo="https://github.com/lasthinker/kernel/tree/main/pub"
 version_branch="stable"
 auto_kernel="true"
-build_kernel=("5.4.180")
+build_kernel=("5.10.100")
 # Set supported SoC
 build_openwrt=(
     "s905x"
@@ -124,11 +119,13 @@ init_var() {
             ;;
         -b | --buildSoC)
             if [ -n "${2}" ]; then
-                unset build_openwrt
-                oldIFS=$IFS
-                IFS=_
-                build_openwrt=(${2})
-                IFS=$oldIFS
+                if [[ "${2}" != "all" ]]; then
+                    unset build_openwrt
+                    oldIFS=$IFS
+                    IFS=_
+                    build_openwrt=(${2})
+                    IFS=$oldIFS
+                fi
                 shift
             else
                 error_msg "Invalid -b parameter [ ${2} ]!"
@@ -626,7 +623,7 @@ EOF
     sed -i "s|meson.*.dtb|${FDTFILE}|g" ${boot_conf_file}
 
     # Add u-boot.ext for 5.10 kernel
-    if [[ -n "${UBOOT_OVERLOAD}" && -f "${UBOOT_OVERLOAD}" ]]; then
+    if [[ "${K510}" -eq "1" && -n "${UBOOT_OVERLOAD}" && -f "${UBOOT_OVERLOAD}" ]]; then
         cp -f ${UBOOT_OVERLOAD} u-boot.ext
         chmod +x u-boot.ext
     elif [[ "${K510}" -eq "1" ]] && [[ -z "${UBOOT_OVERLOAD}" || ! -f "${UBOOT_OVERLOAD}" ]]; then
