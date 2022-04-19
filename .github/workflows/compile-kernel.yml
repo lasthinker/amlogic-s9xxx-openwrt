@@ -14,9 +14,9 @@ on:
         required: false
         default: "lasthinker"
       kernel_version:
-        description: "Kernel version: 5.10.100"
+        description: "Kernel version: 5.15.25"
         required: false
-        default: "5.10.100"
+        default: "5.15.25"
       kernel_auto:
         description: "Auto use the latest kernel"
         required: false
