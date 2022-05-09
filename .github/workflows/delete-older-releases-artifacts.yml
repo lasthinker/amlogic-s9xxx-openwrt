@@ -17,7 +17,7 @@ env:
   DELETE_ARTIFACTS: true
   KEEP_DAY: 1
   KEEP_MININUM_RUNS: 0
-  KEEP_MININUM_RELEASE: 2
+  KEEP_MININUM_RELEASE: 3
 
 jobs:
   build:
@@ -42,7 +42,7 @@ jobs:
       uses: Mattraks/delete-workflow-runs@main
       if: env.DELETE_ARTIFACTS == 'true'
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ github.token }}
         repository: ${{ github.repository }}
         retain_days: ${{ env.KEEP_DAY }}
         keep_minimum_runs: ${{ env.KEEP_MININUM_RUNS }}
