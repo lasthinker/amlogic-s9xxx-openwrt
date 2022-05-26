@@ -5,9 +5,9 @@
 # License version 2. This program is licensed "as is" without any
 # warranty of any kind, whether express or implied.
 #
-# This file is a part of the make OpenWrt for Amlogic S905X
+# This file is a part of the make OpenWrt for Amlogic
 #
-# Description: Automatically Packaged OpenWrt for Amlogic S905X
+# Description: Automatically Packaged OpenWrt for Amlogic
 #
 # Copyright (C) 2020- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
