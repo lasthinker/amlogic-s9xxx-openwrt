@@ -1,5 +1,5 @@
 #==========================================================================
-# Description: Compile the kernel
+# Description: Compile the OpenWrt kernel for Amlogic
 # Copyright (C) 2021 https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #==========================================================================
 

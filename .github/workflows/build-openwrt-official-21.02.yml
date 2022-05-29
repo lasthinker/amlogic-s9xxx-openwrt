@@ -1,6 +1,6 @@
 #========================================================================================================================
 # https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Automatically Build OpenWrt for Amlogic S905X
+# Description: Automatically Build OpenWrt for Amlogic
 # Cron: min (0 - 59) / hour (0 - 23) / day of month (1 - 31) / month (1 - 12) / day of week (0 - 6)(Sunday - Saturday)
 # Source code repository: https://github.com/openwrt/openwrt / Branch: 21.02
 #========================================================================================================================
@@ -20,7 +20,7 @@ on:
         required: false
         default: "5.15.25"
       openwrt_size:
-        description: "Set the rootfs size."
+        description: "Set the rootfs size(Unit: MiB)."
         required: false
         default: "960"
   #schedule:

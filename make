@@ -66,7 +66,7 @@ build_kernel=("5.15.25")
 build_openwrt=(
     "s905x"
 )
-# Set OpenWrt firmware size (SKIP_MB >= 4, BOOT_MB >= 256, ROOT_MB >= 512)
+# Set OpenWrt firmware size (Unit: MiB, SKIP_MB >= 4, BOOT_MB >= 256, ROOT_MB >= 512)
 SKIP_MB="68"
 BOOT_MB="256"
 ROOT_MB="960"
