@@ -277,73 +277,10 @@ confirm_version() {
 
     # Confirm soc branch
     case "${soc}" in
-    s905x3 | x96 | hk1 | h96 | ugoosx3)
-        FDTFILE="meson-sm1-x96-max-plus-100m.dtb"
-        UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
-        MAINLINE_UBOOT="x96maxplus-u-boot.bin.sd.bin"
-        ANDROID_UBOOT="hk1box-bootloader.img"
-        ;;
-    s905x2 | x96max4g | x96max2g)
-        FDTFILE="meson-g12a-x96-max.dtb"
-        UBOOT_OVERLOAD="u-boot-x96max.bin"
-        MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin"
-        ANDROID_UBOOT=""
-        ;;
-    s905x2-km3)
-        FDTFILE="meson-g12a-sei510.dtb"
-        UBOOT_OVERLOAD="u-boot-x96max.bin"
-        MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin"
-        ANDROID_UBOOT=""
-        ;;
-    s905l3a | e900v22c | e900v22d)
-        FDTFILE="meson-g12a-s905l3a-e900v22c.dtb"
-        UBOOT_OVERLOAD="u-boot-e900v22c.bin"
-        MAINLINE_UBOOT="e900v22c-u-boot.bin.sd.bin"
-        ANDROID_UBOOT=""
-        ;;
-    s905x | hg680p | b860h)
-        FDTFILE="meson-gxl-s905x-p212.dtb"
-        UBOOT_OVERLOAD="u-boot-p212.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
-    s905w | x96mini | tx3mini)
-        FDTFILE="meson-gxl-s905w-tx3-mini.dtb"
-        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
-    s905d | n1)
-        FDTFILE="meson-gxl-s905d-phicomm-n1.dtb"
-        UBOOT_OVERLOAD="u-boot-n1.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT="u-boot-2015-phicomm-n1.bin"
-        ;;
-    s905d-ki)
-        FDTFILE="meson-gxl-s905d-mecool-ki-pro.dtb"
-        UBOOT_OVERLOAD="u-boot-p201.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
-    s905 | beelinkminimx | mxqpro+)
-        FDTFILE="meson-gxbb-beelink-mini-mx.dtb"
-        #FDTFILE="meson-gxbb-mxq-pro-plus.dtb"
-        #FDTFILE="meson-gxbb-vega-s95-telos.dtb"
-        UBOOT_OVERLOAD="u-boot-s905.bin"
-        #UBOOT_OVERLOAD="u-boot-p201.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
-    s912 | h96proplus | octopus)
-        FDTFILE="meson-gxm-octopus-planet.dtb"
-        UBOOT_OVERLOAD="u-boot-zyxq.bin"
-        MAINLINE_UBOOT=""
-        ANDROID_UBOOT=""
-        ;;
-    s912-m8s | s912-m8s-pro)
-        FDTFILE="meson-gxm-q201.dtb"
-        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
-        MAINLINE_UBOOT=""
+    a311d | khadas-vim3)
+        FDTFILE="meson-g12b-a311d-khadas-vim3.dtb"
+        UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
+        MAINLINE_UBOOT="khadas-vim3-u-boot.sd.bin"
         ANDROID_UBOOT=""
         ;;
     s922x | belink | belinkpro | ugoos)
@@ -364,10 +301,73 @@ confirm_version() {
         MAINLINE_UBOOT=""
         ANDROID_UBOOT=""
         ;;
-    a311d | khadas-vim3)
-        FDTFILE="meson-g12b-a311d-khadas-vim3.dtb"
-        UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
-        MAINLINE_UBOOT="khadas-vim3-u-boot.sd.bin"
+    s905x3 | tx3 | x96 | hk1 | h96 | ugoosx3)
+        FDTFILE="meson-sm1-x96-max-plus-100m.dtb"
+        UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
+        MAINLINE_UBOOT="x96maxplus-u-boot.bin.sd.bin"
+        ANDROID_UBOOT="hk1box-bootloader.img"
+        ;;
+    s905x2 | x96max4g | x96max2g)
+        FDTFILE="meson-g12a-x96-max.dtb"
+        UBOOT_OVERLOAD="u-boot-x96max.bin"
+        MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin"
+        ANDROID_UBOOT=""
+        ;;
+    s905x2-km3)
+        FDTFILE="meson-g12a-sei510.dtb"
+        UBOOT_OVERLOAD="u-boot-x96max.bin"
+        MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin"
+        ANDROID_UBOOT=""
+        ;;
+    s912 | h96proplus | octopus)
+        FDTFILE="meson-gxm-octopus-planet.dtb"
+        UBOOT_OVERLOAD="u-boot-zyxq.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s912-m8s | s912-m8s-pro-l)
+        FDTFILE="meson-gxm-q201.dtb"
+        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s905d | n1)
+        FDTFILE="meson-gxl-s905d-phicomm-n1.dtb"
+        UBOOT_OVERLOAD="u-boot-n1.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT="u-boot-2015-phicomm-n1.bin"
+        ;;
+    s905d-ki)
+        FDTFILE="meson-gxl-s905d-mecool-ki-pro.dtb"
+        UBOOT_OVERLOAD="u-boot-p201.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s905x | hg680p | tbee | b860h)
+        FDTFILE="meson-gxl-s905x-p212.dtb"
+        UBOOT_OVERLOAD="u-boot-p212.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s905w | x96mini | tx3mini)
+        FDTFILE="meson-gxl-s905w-tx3-mini.dtb"
+        UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s905 | beelinkminimx | mxqpro+)
+        FDTFILE="meson-gxbb-beelink-mini-mx.dtb"
+        #FDTFILE="meson-gxbb-mxq-pro-plus.dtb"
+        #FDTFILE="meson-gxbb-vega-s95-telos.dtb"
+        UBOOT_OVERLOAD="u-boot-s905.bin"
+        #UBOOT_OVERLOAD="u-boot-p201.bin"
+        MAINLINE_UBOOT=""
+        ANDROID_UBOOT=""
+        ;;
+    s905l3a | e900v22c | e900v22d)
+        FDTFILE="meson-g12a-s905l3a-e900v22c.dtb"
+        UBOOT_OVERLOAD="u-boot-e900v22c.bin"
+        MAINLINE_UBOOT="e900v22c-u-boot.bin.sd.bin"
         ANDROID_UBOOT=""
         ;;
     *)
