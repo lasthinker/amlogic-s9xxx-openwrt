@@ -1,9 +1,9 @@
 #!/bin/bash
 #========================================================================================================================
 # https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Automatically Build OpenWrt for Amlogic S905X
+# Description: Automatically Build OpenWrt for Amlogic
 # Function: Diy script (After Update feeds, Modify the default IP, hostname, theme, add/remove software packages, etc.)
-# Source code repository: https://github.com/coolsnowwolf/lede / Branch: master
+# Source code repository: https://github.com/lasthinker/lede / Branch: master
 #========================================================================================================================
 
 # ------------------------------- Main source started -------------------------------
