@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Branch [ official-master / lasthinker ]"
+        description: "Branch [ lasthinker / official ]"
         required: false
         default: "lasthinker"
       openwrt_soc:
