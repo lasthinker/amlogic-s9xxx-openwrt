@@ -11,17 +11,34 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Branch [ lasthinker / official ]"
+        description: "Select the packaged source branch"
         required: false
         default: "lasthinker"
+        type: choice
+        options:
+          - official
+          - lasthinker
       openwrt_soc:
-        description: "Choose Amlogic SoC."
+        description: "Select Amlogic SoC"
         required: false
         default: "s905x"
+        type: choice
+        options:
+          - all
+          - s905x
       openwrt_kernel:
-        description: "Choose kernel version."
+        description: "Select kernel version"
         required: false
         default: "5.4.195"
+        type: choice
+        options:
+          - 5.15.45_5.10.120
+          - 5.4.195
+      auto_kernel:
+        description: "Auto use the latest kernel"
+        required: false
+        default: true
+        type: boolean
       openwrt_size:
         description: "Set the rootfs size(Unit: MiB)."
         required: false
@@ -76,6 +93,7 @@ jobs:
           openwrt_path: openwrt/bin/targets/*/*/*rootfs.tar.gz
           openwrt_soc: ${{ github.event.inputs.openwrt_soc }}
           openwrt_kernel: ${{ github.event.inputs.openwrt_kernel }}
+          auto_kernel: ${{ github.event.inputs.auto_kernel }}
           openwrt_size: ${{ github.event.inputs.openwrt_size }}
 
       - name: Upload OpenWrt Firmware to Release
