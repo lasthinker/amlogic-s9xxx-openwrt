@@ -100,14 +100,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Initialization environment
+      - name: Initialization Environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo timedatectl set-timezone "${TZ}"
           echo "DELETE_STARTINGTIME=$(date +"%m.%d.%H%M")" >> $GITHUB_ENV
 
-      - name: Delete older releases
+      - name: Delete Older Releases
         uses: dev-drprasad/delete-older-releases@master
         if: ${{ github.event.inputs.delete_older_releases }} == 'true'
         with:
@@ -117,7 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Delete older workflow runs and artifacts
+      - name: Delete Older Workflow Runs and Artifacts
         uses: Mattraks/delete-workflow-runs@main
         if: ${{ github.event.inputs.delete_workflow_runs }} == 'true'
         with:

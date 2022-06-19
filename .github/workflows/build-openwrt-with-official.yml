@@ -2,10 +2,10 @@
 # https://github.com/lasthinker/amlogic-s9xxx-openwrt
 # Description: Automatically Build OpenWrt for Amlogic
 # Cron: min (0 - 59) / hour (0 - 23) / day of month (1 - 31) / month (1 - 12) / day of week (0 - 6)(Sunday - Saturday)
-# Source code repository: https://github.com/coolsnowwolf/lede / Branch: master
+# Source code repository: https://github.com/openwrt/openwrt / Branch: master
 #========================================================================================================================
 
-name: Build OpenWrt lede
+name: Build OpenWrt with official
 
 on:
   repository_dispatch:
@@ -26,6 +26,8 @@ on:
         type: choice
         options:
           - 5.15.45_5.10.120
+          - 5.10.120_5.4.195
+          - 5.4.195_5.15.45
           - 5.4.195
       auto_kernel:
         description: "Auto use the latest kernel"
@@ -40,12 +42,12 @@ on:
   #- cron: '0 17 * * 0'
 
 env:
-  REPO_URL: https://github.com/lasthinker/lede
+  REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: master
-  FEEDS_CONF: router-config/lede-master/feeds.conf.default
-  CONFIG_FILE: router-config/lede-master/.config
-  DIY_P1_SH: router-config/lede-master/diy-part1.sh
-  DIY_P2_SH: router-config/lede-master/diy-part2.sh
+  FEEDS_CONF: router-config/openwrt-master/feeds.conf.default
+  CONFIG_FILE: router-config/openwrt-master/.config
+  DIY_P1_SH: router-config/openwrt-master/diy-part1.sh
+  DIY_P2_SH: router-config/openwrt-master/diy-part2.sh
   TZ: Asia/Jakarta
 
 jobs:
@@ -57,7 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Initialization environment
+      - name: Initialization Environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -71,27 +73,27 @@ jobs:
           sudo chown $USER:$GROUPS /workdir
           echo "COMPILE_STARTINGTIME=$(date +"%m.%d.%H%M")" >> $GITHUB_ENV
 
-      - name: Clone source code
+      - name: Clone Source Code
         working-directory: /workdir
         run: |
           df -hT $PWD
           git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-      - name: Load custom feeds
+      - name: Load Custom Feeds
         run: |
           [ -e $FEEDS_CONF ] && cp -f $FEEDS_CONF openwrt/feeds.conf.default
           chmod +x $DIY_P1_SH
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P1_SH
 
-      - name: Update feeds
+      - name: Update Feeds
         run: cd openwrt && ./scripts/feeds update -a
 
-      - name: Install feeds
+      - name: Install Feeds
         run: cd openwrt && ./scripts/feeds install -a
 
-      - name: Load custom configuration
+      - name: Load Custom Configuration
         run: |
           [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && cp -f $CONFIG_FILE openwrt/.config
@@ -99,7 +101,7 @@ jobs:
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P2_SH
 
-      - name: Download package
+      - name: Download Package
         id: package
         run: |
           cd openwrt
@@ -108,7 +110,7 @@ jobs:
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
 
-      - name: Compile the firmware
+      - name: Compile the Firmware
         id: compile
         run: |
           cd openwrt
@@ -133,16 +135,16 @@ jobs:
         uses: ncipollo/release-action@main
         if: env.PACKAGED_STATUS == 'success' && !cancelled()
         with:
-          tag: openwrt_s9xxx_lasthinker_${{ env.PACKAGED_OUTPUTDATE }}
+          tag: openwrt_s9xxx_official_${{ env.PACKAGED_OUTPUTDATE }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
-            This is OpenWrt firmware for Amlogic S905X
-            * Firmware information
+            This is OpenWrt Firmware for Amlogic S905X
+            * Firmware Information
             Default IP: 192.168.2.1
-            Default username: root
-            Default password: password
-            Default WIFI name: OpenWrt
-            Default WIFI password: none
-            Install to EMMC: Login to OpenWrt → System → Amlogic Service → Install OpenWrt
+            Default Username: root
+            Default Password: password
+            Default WIFI SSID: OpenWrt
+            Default WIFI Password: none
+            Install to eMMC: Login to OpenWrt → System → Amlogic Service → Install OpenWrt

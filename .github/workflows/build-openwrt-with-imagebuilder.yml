@@ -5,7 +5,7 @@
 # Download options: https://downloads.openwrt.org/releases
 #=====================================================================================
 
-name: Build OpenWrt with ImageBuilder
+name: Build OpenWrt with imagebuilder
 
 on:
   repository_dispatch:
@@ -38,6 +38,8 @@ on:
         type: choice
         options:
           - 5.15.45_5.10.120
+          - 5.10.120_5.4.195
+          - 5.4.195_5.15.45
           - 5.4.195
       auto_kernel:
         description: "Auto use the latest kernel"
@@ -103,11 +105,11 @@ jobs:
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
-            This is OpenWrt firmware for Amlogic S905X
-            * Firmware information
+            This is OpenWrt Firmware for Amlogic S905X
+            * Firmware Information
             Default IP: 192.168.2.1
-            Default username: root
-            Default password: password
-            Default WIFI name: OpenWrt
-            Default WIFI password: none
-            Install to EMMC: Login to OpenWrt → System → Amlogic Service → Install OpenWrt
+            Default Username: root
+            Default Password: password
+            Default WIFI SSID: OpenWrt
+            Default WIFI Password: none
+            Install to eMMC: Login to OpenWrt → System → Amlogic Service → Install OpenWrt
