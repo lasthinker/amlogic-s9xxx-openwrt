@@ -47,7 +47,7 @@ on:
         default: "960"
 
 env:
-  TZ: Asia/Jakarta
+  TZ: America/New_York
 
 jobs:
   build:
