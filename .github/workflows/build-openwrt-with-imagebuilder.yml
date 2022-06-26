@@ -36,10 +36,10 @@ on:
         default: "5.4.195"
         type: choice
         options:
-          - 5.15.45_5.10.120
-          - 5.10.120_5.4.195
-          - 5.4.195_5.15.45
-          - 5.4.195
+          - 5.15.50_5.10.125
+          - 5.10.125_5.4.199
+          - 5.4.199_5.15.50
+          - 5.4.199
       auto_kernel:
         description: "Auto use the latest kernel"
         required: false

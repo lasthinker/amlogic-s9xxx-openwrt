@@ -61,7 +61,7 @@ script_repo="https://github.com/lasthinker/luci-app-amlogic/tree/main/luci-app-a
 kernel_repo="https://github.com/lasthinker/kernel/tree/main/pub"
 version_branch="stable"
 auto_kernel="true"
-build_kernel=("5.4.195")
+build_kernel=("5.4.199")
 # Set supported SoC
 build_openwrt=(
     "s905x"
