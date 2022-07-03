@@ -11,8 +11,11 @@
 #
 # Copyright (C) 2021- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
-# Instructions: https://openwrt.org/docs/guide-user/additional-software/imagebuilder
-# Download options: https://downloads.openwrt.org/releases
+# Download from: https://downloads.openwrt.org/releases
+# Documentation: https://openwrt.org/docs/guide-user/additional-software/imagebuilder
+# Instructions:  Download OpenWrt firmware from the official OpenWrt,
+#                Use Image Builder to add packages, lib, theme, app and etc.
+#
 # Command: ./imagebuilder.sh <branch>
 #          ./imagebuilder.sh 21.02.3
 #
@@ -20,9 +23,10 @@
 #
 # error_msg               : Output error message
 # download_imagebuilder   : Downloading OpenWrt ImageBuilder
-# custom_packages         : Add custom packages
-# custom_files            : Add custom files
 # adjust_settings         : Adjust related file settings
+# custom_packages         : Add custom packages
+# custom_config           : Add custom config
+# custom_files            : Add custom files
 # rebuild_firmware        : rebuild_firmware
 #
 #================================ Set make environment variables ================================
@@ -31,6 +35,7 @@
 make_path="${PWD}"
 imagebuilder_path="${make_path}/openwrt"
 custom_files_path="${make_path}/router-config/openwrt-imagebuilder/files"
+config_file_path="${make_path}/router-config/openwrt-imagebuilder/.config"
 # Set default parameters
 STEPS="[\033[95m STEPS \033[0m]"
 INFO="[\033[94m INFO \033[0m]"
@@ -63,23 +68,6 @@ download_imagebuilder() {
     echo -e "${INFO} [ ${make_path} ] directory status: $(ls . -l 2>/dev/null)"
 }
 
-# Add custom files
-# The FILES variable allows custom configuration files to be included in images built with Image Builder.
-# The [ files ] directory should be placed in the Image Builder root directory where you issue the make command.
-custom_files() {
-    cd ${imagebuilder_path}
-
-    [[ -d "${custom_files_path}" ]] && {
-        echo -e "${STEPS} Start adding custom files..."
-        # Copy custom files
-        [[ -d "files" ]] || mkdir -p files
-        cp -rf ${custom_files_path}/* files
-
-        sync && sleep 3
-        echo -e "${INFO} [ files ] directory status: $(ls files -l 2>/dev/null)"
-    }
-}
-
 # Adjust related files in the ImageBuilder directory
 adjust_settings() {
     cd ${imagebuilder_path}
@@ -102,12 +90,66 @@ adjust_settings() {
     echo -e "${INFO} [ openwrt ] directory status: $(ls -al 2>/dev/null)"
 }
 
+# Add custom packages
+# If there is a custom package or ipk you would prefer to use create a [ packages ] directory,
+# If one does not exist and place your custom ipk within this directory.
+custom_packages() {
+    cd ${imagebuilder_path}
+
+    echo -e "${STEPS} Start adding custom packages..."
+    # Create a [ packages ] directory
+    [[ -d "packages" ]] || mkdir packages
+
+    # Download luci-app-amlogic
+    amlogic_api="https://api.github.com/repos/lasthinker/luci-app-amlogic/releases"
+    #
+    amlogic_file="luci-app-amlogic"
+    amlogic_file_down="$(curl -s ${amlogic_api} | grep "browser_download_url" | grep -oE "https.*${amlogic_name}.*.ipk" | head -n 1)"
+    wget -q ${amlogic_file_down} -O packages/${amlogic_file_down##*/}
+    [[ "${?}" -eq "0" ]] && echo -e "${INFO} The [ ${amlogic_file} ] is downloaded successfully."
+    #
+    # Download other luci-app-xxx
+    # ......
+
+    sync && sleep 3
+    echo -e "${INFO} [ packages ] directory status: $(ls packages -l 2>/dev/null)"
+}
+
+# Add custom packages, lib, theme, app and etc.
+custom_config() {
+    echo -e "${STEPS} Start adding custom config..."
+
+    config_list=""
+    [[ -s "${config_file_path}" ]] && {
+        config_list="$(cat ${config_file_path} 2>/dev/null | grep -E "^CONFIG_PACKAGE_.*=y" | sed -e 's/CONFIG_PACKAGE_//g' -e 's/=y//g' -e 's/[ ][ ]*//g' | tr '\n' ' ')"
+    }
+
+    echo -e "${INFO} Custom config list: \n$(echo "${config_list}" | tr ' ' '\n')"
+}
+
+# Add custom files
+# The FILES variable allows custom configuration files to be included in images built with Image Builder.
+# The [ files ] directory should be placed in the Image Builder root directory where you issue the make command.
+custom_files() {
+    cd ${imagebuilder_path}
+
+    [[ -d "${custom_files_path}" ]] && {
+        echo -e "${STEPS} Start adding custom files..."
+        # Copy custom files
+        [[ -d "files" ]] || mkdir -p files
+        cp -rf ${custom_files_path}/* files
+
+        sync && sleep 3
+        echo -e "${INFO} [ files ] directory status: $(ls files -l 2>/dev/null)"
+    }
+}
+
 # Rebuild OpenWrt firmware
 rebuild_firmware() {
     cd ${imagebuilder_path}
 
     echo -e "${STEPS} Start building OpenWrt with Image Builder..."
-    # Selecting packages, lib, theme, app and i18n
+    # Selecting default packages, lib, theme, app and etc.
     my_packages="\
         bash perl-http-date perlbase-getopt perlbase-time perlbase-unicode perlbase-utf8 blkid fdisk \
         lsblk parted attr btrfs-progs chattr dosfstools e2fsprogs f2fs-tools f2fsck lsattr mkf2fs \
@@ -125,13 +167,7 @@ rebuild_firmware() {
         luci-mod-admin-full luci-compat luci-proto-3g luci-proto-bonding luci-proto-ipip luci-proto-ncm \
         luci-proto-ipv6 luci-proto-openconnect luci-proto-ppp luci-proto-qmi luci-proto-relay \
         \
-        luci-theme-material \
-        \
-        luci-app-opkg luci-app-dockerman luci-app-firewall luci-app-transmission \
-        luci-app-ttyd luci-app-samba4 luci-app-upnp luci-app-amlogic \
-        \
-        luci-i18n-opkg-en luci-i18n-dockerman-en luci-i18n-firewall-en luci-i18n-transmission-en \
-        luci-i18n-ttyd-en luci-i18n-samba4-en luci-i18n-upnp-en \
+        ${config_list} \
         "
 
     # Rebuild firmware
@@ -152,9 +188,10 @@ echo -e "${INFO} Rebuild branch: [ ${rebuild_branch} ]"
 #
 # Perform related operations
 download_imagebuilder
-custom_packages
-custom_files
 adjust_settings
+custom_packages
+custom_config
+custom_files
 rebuild_firmware
 #
 # Show server end information
