@@ -16,8 +16,8 @@
 # Instructions:  Download OpenWrt firmware from the official OpenWrt,
 #                Use Image Builder to add packages, lib, theme, app and etc.
 #
-# Command: ./imagebuilder.sh <branch>
-#          ./imagebuilder.sh 21.02.3
+# Command: ./router-config/openwrt-imagebuilder/imagebuilder.sh <branch>
+#          ./router-config/openwrt-imagebuilder/imagebuilder.sh 21.02.3
 #
 #======================================== Functions list ========================================
 #
