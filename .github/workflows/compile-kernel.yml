@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       kernel_repo:
-        description: "Choose to compile kernel sources"
+        description: "Select the kernel repository"
         required: false
         default: "lasthinker"
         type: choice
@@ -32,6 +32,14 @@ on:
         required: false
         default: true
         type: boolean
+      kernel_package:
+        description: "Select compile package list"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - dtbs
       kernel_sign:
         description: "Set the kernel custom signature"
         required: false
@@ -54,12 +62,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Initialization Environment
+        id: init
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc 2>/dev/null
           sudo -E apt-get -qq update
-          sudo -E apt-get -qq install $(curl -fsSL https://raw.githubusercontent.com/lasthinker/amlogic-s9xxx-armbian/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
+          sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/lasthinker/amlogic-s9xxx-armbian/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "${TZ}"
@@ -72,6 +81,7 @@ jobs:
           kernel_repo: ${{ github.event.inputs.kernel_repo }}
           kernel_version: ${{ github.event.inputs.kernel_version }}
           kernel_auto: ${{ github.event.inputs.kernel_auto }}
+          kernel_package: ${{ github.event.inputs.kernel_package }}
           kernel_sign: ${{ github.event.inputs.kernel_sign }}
           kernel_config: ${{ github.event.inputs.kernel_config }}
 
