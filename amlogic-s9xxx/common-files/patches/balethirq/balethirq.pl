@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# Copyright (C) 2021- https://github.com/lasthinker
 
 use strict;
 our %irq_map;
@@ -7,19 +8,22 @@ our %min_cpu_map;
 our %uniq_eth_cpu_map;
 our $all_cpu_mask = 0;
 
-# Whether the rpscpu mask should exclude the core occupied by eth0 (0: No 1: Yes)
+# Whether the rpscpu mask should exclude cores occupied by eth0 (0: no 1: yes)
 our $rpscpu_exclude_eth0_core=1;
-# Whether the rpscpu mask should exclude the core occupied by eth1 (0: No 1: Yes)
+# Whether the rpscpu mask should exclude cores occupied by eth1 (0: no 1: yes)
 our $rpscpu_exclude_eth1_core=1;
+
+our $usb_as_eth1 = 0;
 
 &read_config();
 &read_irq_data();
 &update_smp_affinity();
 &enable_eth_rps_rfs();
+&board_special_config();
 exit(0);
 
 ############################## sub functions #########################
-# Read /etc/balance_irq configuration file
+# Read /etc/balance_irq or /etc/config/balance_irq configuration file
 sub read_config {
     my $cpu_count = &get_cpu_count();
     my $fh;
@@ -35,6 +39,10 @@ sub read_config {
     open $fh, "<", $config_file or die $!;
     while(<$fh>) {
         chomp;
+	# Skip comment lines
+	next if(/^#/);
+	# Skip blank lines
+	next if(/^\s*$/);
         my($name, $value) = split;
         my @cpus = split(',', $value);
         # ARMV8 The current maximum number of CPU cores is 8 cores
@@ -42,7 +50,7 @@ sub read_config {
 
         foreach my $cpu (@cpus) {
             if($cpu > $cpu_count) {
-                $cpu = $cpu_count;        
+                $cpu = $cpu_count;
             } elsif($cpu < 1) {
                 $cpu = 1;
             }
@@ -53,7 +61,7 @@ sub read_config {
 
         $cpu_map{$name} = \@cpus;
         $min_cpu_map{$name} = $min_cpu;
-    } # while 
+    } # while
     close $fh;
 }
 
@@ -77,21 +85,32 @@ sub get_cpu_count {
 sub read_irq_data {
     my $fh;
     open $fh, "<", "/proc/interrupts" or die $!;
+    my %local_map;
     while(<$fh>) {
         chomp;
         my @raw = split;
         my $irq = $raw[0];
         $irq =~ s/://;
         my $name = $raw[-1];
+	if(exists $local_map{$name}) {
+	    # r68s Have 2 pieces eth0 and 2 pieces eth1，Keep only Article 1
+	    next;
+	} else {
+	    $local_map{$name} = 1;
+	}
 
         if(exists $cpu_map{$name}) {
             $irq_map{$name} = $irq;
-            if($name =~ m/\Aeth[0-9]\Z/) {
-		# Native ethX 
+            if($name =~ m/\Axhci-hcd:usb[1-9]\Z/) {
+		if (not (exists $cpu_map{eth1} || exists $cpu_map{'eth1-0'}) ) {
+                    # For devices with a single network port，USB external network card as eth1
+		    $usb_as_eth1 = 1;
+                    $uniq_eth_cpu_map{eth1} =  1 << ($min_cpu_map{$name} - 1);
+	        } else {
+                    $uniq_eth_cpu_map{$name} =  1 << ($min_cpu_map{$name} - 1);
+		}
+            } else {
                 $uniq_eth_cpu_map{$name} = 1 << ($min_cpu_map{$name} - 1);
-            } elsif($name =~ m/\Axhci-hcd:usb[1-9]\Z/) { # usb extend eth1
-		# USB external network card: equivalent to eth1
-                $uniq_eth_cpu_map{eth1} =  1 << ($min_cpu_map{$name} - 1);
             }
         }
     }
@@ -140,24 +159,26 @@ sub tunning_eth_ring {
                 print "Set the tx ring of ${eth} to ${target_tx_ring}\n";
             }
         }
-    } 
+    }
 }
 
 sub enable_eth_rps_rfs {
     my $rps_sock_flow_entries = 0;
-    for my $eth ("eth0","eth1") {
-        if(-d "/sys/class/net/${eth}/queues/rx-0") {
+    for my $eth ("eth0","eth1","eth2","eth3","eth4","eth5","eth6") {
+	# RPS optimization is only for single-queue NICs，
+	# If it exists rx-1,Indicates that the network card supports RSS multiple queues，No need to optimize
+        if((-d "/sys/class/net/${eth}/queues/rx-0") && (! -d "/sys/class/net/${eth}/queues/rx-1")) {
             my $value = 32768;
             $rps_sock_flow_entries += $value;
             my $eth_cpu_mask_hex;
 	    my $cpu_mask = $all_cpu_mask;
             if($rpscpu_exclude_eth0_core == 1) {
-	        $cpu_mask -= $uniq_eth_cpu_map{eth0}; 
+	        $cpu_mask -= $uniq_eth_cpu_map{eth0};
 	    }
             if($rpscpu_exclude_eth1_core == 1) {
-	        $cpu_mask -= $uniq_eth_cpu_map{eth1}; 
+	        $cpu_mask -= $uniq_eth_cpu_map{eth1};
 	    }
-	    
+
             $eth_cpu_mask_hex = sprintf("%0x", $cpu_mask);
             print "Set the rps cpu mask of $eth to 0x$eth_cpu_mask_hex\n";
             open my $fh, ">", "/sys/class/net/${eth}/queues/rx-0/rps_cpus" or die;
@@ -172,11 +193,33 @@ sub enable_eth_rps_rfs {
             print $fh $eth_cpu_mask_hex;
             close $fh;
 
-            # USB external network card: eth1 (RTL8153), the best rx_ring measured in the range of 100-500, the default value is 100, after more than 500, the load of multiple CPUs will be unbalanced
-            &tunning_eth_ring($eth, 192, 0) if ($eth ne "eth0");
+	    if( ($eth eq "eth1") && ($usb_as_eth1 == 1) ) {
+                # USB external network card: eth1 (RTL8153), the best rx_ring measured is in the range of 100-500, the default value is 100, after 500, the multi-CPU load will be unbalanced
+	        &tunning_eth_ring($eth, 192, 0);
+            }
         }
     }
     open my $fh, ">", "/proc/sys/net/core/rps_sock_flow_entries" or die;
     print $fh $rps_sock_flow_entries;
     close $fh;
+}
+
+sub get_boardinfo() {
+    my $ret="unknown";
+    if(-f "/proc/device-tree/model") {
+         open my $fh, "<", "/proc/device-tree/model" or warn $!;
+	 read $fh, $ret, 100;
+	 close $fh;
+	 $ret =~ s/\0//;
+    }
+    return $ret;
+}
+
+sub board_special_config() {
+    my $board = &get_boardinfo();
+    if($board eq "FastRhino R68S") {
+        &tunning_eth_ring("eth2", 256, 256);
+    } elsif($board eq "FastRhino R66S") {
+        &tunning_eth_ring("eth0", 256, 256);
+    }
 }
