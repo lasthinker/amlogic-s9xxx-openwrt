@@ -1,16 +1,16 @@
 #=====================================================================================
 # https://github.com/lasthinker/amlogic-s9xxx-openwrt
-# Description: Use Releases file to packaging
+# Description: Use Releases File to Packaging
 #=====================================================================================
 
-name: Use Releases file to Packaging
+name: Use Releases File to Packaging
 
 on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Select the source branch"
+        description: "Select Source branch"
         required: false
         default: "lasthinker"
         type: choice
@@ -26,7 +26,7 @@ on:
           - all
           - s905x
       openwrt_kernel:
-        description: "Select kernel version"
+        description: "Select Kernel version"
         required: false
         default: "5.4.195"
         type: choice
@@ -36,12 +36,12 @@ on:
           - 5.4.199_5.15.50
           - 5.4.199
       auto_kernel:
-        description: "Auto use the latest kernel"
+        description: "Auto Use Latest kernel"
         required: false
         default: true
         type: boolean
       openwrt_size:
-        description: "Set the rootfs size(Unit: MiB)."
+        description: "Set ROOTFS Size(Unit: MiB)."
         required: false
         default: "960"
 
@@ -51,7 +51,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
       - name: Checkout
@@ -68,13 +68,13 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "${TZ}"
-          echo "::set-output name=status::success"
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Download OpenWrt Armvirt Firmware
         id: down
-        if: (!cancelled())
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
-          openwrt_url="$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "openwrt_.*${{ github.event.inputs.branch }}.*/.*rootfs.tar.gz" | head -n 1)"
+          openwrt_url="$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "OpenWrt_.*${{ github.event.inputs.branch }}.*/.*rootfs.tar.gz" | head -n 1)"
           [[ -z "${openwrt_url}" ]] && echo -e "OpenWrt file not found!" && exit 1
           #
           armvirt_tarfile_path="openwrt/bin/targets/armvirt/64"
@@ -82,10 +82,10 @@ jobs:
           #
           wget -q -P "${armvirt_tarfile_path}" "https://github.com/${GITHUB_REPOSITORY}/releases/download/${openwrt_url}"
           [[ "${?}" -ne "0" ]] && echo "The armvirt file download failed!" && exit 1
-          echo "::set-output name=status::success"
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Build OpenWrt Firmware
-        if: steps.down.outputs.status == 'success' && !cancelled()
+        if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
         uses: lasthinker/amlogic-s9xxx-openwrt@main
         with:
           openwrt_path: openwrt/bin/targets/*/*/*rootfs.tar.gz
@@ -96,9 +96,9 @@ jobs:
 
       - name: Upload OpenWrt Firmware to Release
         uses: ncipollo/release-action@main
-        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
         with:
-          tag: openwrt_amlogic_s9xxx_${{ github.event.inputs.branch }}_${{ env.PACKAGED_OUTPUTDATE }}
+          tag: OpenWrt_Aml_${{ github.event.inputs.branch }}_${{ env.PACKAGED_OUTPUTDATE }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}

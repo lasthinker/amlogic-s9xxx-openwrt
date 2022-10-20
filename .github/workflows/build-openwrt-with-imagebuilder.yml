@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Select the releases branch"
+        description: "Select Releases Branch"
         required: false
         default: "22.03.0"
         type: choice
@@ -30,7 +30,7 @@ on:
           - all
           - s905x
       openwrt_kernel:
-        description: "Select kernel version"
+        description: "Select Kernel Version"
         required: false
         default: "5.4.195"
         type: choice
@@ -40,12 +40,12 @@ on:
           - 5.4.199_5.15.50
           - 5.4.199
       auto_kernel:
-        description: "Auto use the latest kernel"
+        description: "Auto Use Latest Kernel"
         required: false
         default: true
         type: boolean
       openwrt_size:
-        description: "Set the rootfs size(Unit: MiB)."
+        description: "Set ROOTFS Size(Unit: MiB)."
         required: false
         default: "960"
 
@@ -56,7 +56,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
       - name: Checkout
@@ -73,20 +73,20 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "${TZ}"
-          echo "::set-output name=status::success"
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Build Rootfs with Image Builder
         id: imagebuilder
-        if: (!cancelled())
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
           RELEASES_BRANCH="${{ github.event.inputs.branch }}"
           chmod +x ${IMAGEBUILDER_SH}
           ${IMAGEBUILDER_SH} ${RELEASES_BRANCH}
-          echo "RELEASES_BRANCH=${RELEASES_BRANCH}" >> $GITHUB_ENV
-          echo "::set-output name=status::success"
+          echo "RELEASES_BRANCH=${RELEASES_BRANCH}" >> ${GITHUB_ENV}
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Build OpenWrt Firmware
-        if: steps.imagebuilder.outputs.status == 'success' && !cancelled()
+        if: ${{ steps.imagebuilder.outputs.status }} == 'success' && !cancelled()
         uses: lasthinker/amlogic-s9xxx-openwrt@main
         with:
           openwrt_path: openwrt/bin/targets/*/*/*rootfs.tar.gz
@@ -97,9 +97,9 @@ jobs:
 
       - name: Upload OpenWrt Firmware to Release
         uses: ncipollo/release-action@main
-        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
         with:
-          tag: openwrt_amlogic_s9xxx_imagebuilder_${{ env.RELEASES_BRANCH }}_${{ env.PACKAGED_OUTPUTDATE }}
+          tag: OpenWrt_Aml_imagebuilder_${{ env.RELEASES_BRANCH }}_${{ env.PACKAGED_OUTPUTDATE }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}

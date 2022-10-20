@@ -1,16 +1,16 @@
 #==========================================================================
-# Description: Compile the OpenWrt kernel for Amlogic
+# Description: Compile OpenWrt Kernel for Amlogic
 # Copyright (C) 2021 https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #==========================================================================
 
-name: Compile the kernel
+name: Compile Kernel
 
 on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
       kernel_repo:
-        description: "Select the kernel repository"
+        description: "Select Kernel Repository"
         required: false
         default: "lasthinker"
         type: choice
@@ -18,7 +18,7 @@ on:
           - kernel.org
           - lasthinker
       kernel_version:
-        description: "Select kernel version"
+        description: "Select Kernel Version"
         required: false
         default: "5.4.195"
         type: choice
@@ -28,12 +28,12 @@ on:
           - 5.4.199_5.15.50
           - 5.4.199
       kernel_auto:
-        description: "Auto use the latest kernel"
+        description: "Auto Use Latest Kernel"
         required: false
         default: true
         type: boolean
       kernel_package:
-        description: "Select compile package list"
+        description: "Select Compile Package List"
         required: false
         default: "all"
         type: choice
@@ -41,11 +41,11 @@ on:
           - all
           - dtbs
       kernel_sign:
-        description: "Set the kernel custom signature"
+        description: "Set Kernel Custom Signature"
         required: false
         default: "-lasthinker"
       kernel_config:
-        description: "Set the path of kernel .config"
+        description: "Set Path of Kernel .config"
         required: false
         default: ""
 
@@ -55,7 +55,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
       - name: Checkout
@@ -72,10 +72,11 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "${TZ}"
-          echo "::set-output name=status::success"
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Compile the Kernel for Amlogic S905X
+      - name: Compile Kernel
         uses: lasthinker/amlogic-s9xxx-armbian@main
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         with:
           build_target: kernel
           kernel_repo: ${{ github.event.inputs.kernel_repo }}
@@ -87,12 +88,12 @@ jobs:
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
-        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
         with:
           tag: kernel_${{ env.PACKAGED_OUTPUTTAGS }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
-            The kernel can be used to compile Armbian and OpenWrt.
-            The kernel source code comes from: ${{ github.event.inputs.kernel_repo }}
+            Kernel Can Be Used to Compile Armbian and OpenWrt.
+            Kernel Source Code Comes From: ${{ github.event.inputs.kernel_repo }}

@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Select the source branch"
+        description: "Select Source Branch"
         required: false
         default: "lasthinker"
         type: choice
@@ -20,7 +20,7 @@ on:
           - lasthinker
           - official
       docker_img:
-        description: "Set the docker image"
+        description: "Set Docker Image"
         required: false
         default: "lasthinker/openwrt-aarch64:latest"
 
@@ -30,18 +30,18 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download OpenWrt rootfs file
+      - name: Download OpenWrt ROOTFS File
         id: down
         if: (!cancelled())
         run: |
           # Get OpenWrt file
-          openwrt_url="$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "openwrt_.*${{ github.event.inputs.branch }}.*/.*rootfs.tar.gz" | head -n 1)"
+          openwrt_url="$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "OpenWrt_.*${{ github.event.inputs.branch }}.*/.*rootfs.tar.gz" | head -n 1)"
           [[ -z "${openwrt_url}" ]] && echo -e "OpenWrt file not found!" && exit 1
           rm -rf ${{ env.DOCKER_OUTPATH }} 2>/dev/null && mkdir -p ${{ env.DOCKER_OUTPATH }}
           wget -q "https://github.com/${GITHUB_REPOSITORY}/releases/download/${openwrt_url}" -O "${{ env.DOCKER_OUTPATH }}/openwrt-armvirt-64-default-rootfs.tar.gz"
@@ -54,7 +54,7 @@ jobs:
           echo 'ENTRYPOINT ["/sbin/init"]' >>${docker_envfile}
           #
           sync && echo -e "Current ${{ env.DOCKER_OUTPATH }} directory status: \n$(ls ${{ env.DOCKER_OUTPATH }} -l)"
-          echo "::set-output name=status::success"
+          echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Set up QEMU
         id: qemu
