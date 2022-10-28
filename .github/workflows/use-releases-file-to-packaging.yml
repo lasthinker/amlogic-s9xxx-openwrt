@@ -98,7 +98,7 @@ jobs:
         uses: ncipollo/release-action@main
         if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
         with:
-          tag: OpenWrt_Aml_${{ github.event.inputs.branch }}_${{ env.PACKAGED_OUTPUTDATE }}
+          tag: openwrt_aml_${{ github.event.inputs.branch }}_${{ env.PACKAGED_OUTPUTDATE }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
