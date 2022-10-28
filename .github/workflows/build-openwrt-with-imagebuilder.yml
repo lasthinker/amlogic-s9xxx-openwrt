@@ -32,13 +32,15 @@ on:
       openwrt_kernel:
         description: "Select Kernel Version"
         required: false
-        default: "5.4.195"
+        default: "5.15.75"
         type: choice
         options:
-          - 5.15.50_5.10.125
-          - 5.10.125_5.4.199
-          - 5.4.199_5.15.50
-          - 5.4.199
+          - 5.15.75_5.10.150
+          - 5.10.150_5.4.220
+          - 5.4.220_5.15.75
+          - 5.4.220
+          - 5.10.150
+          - 5.15.75
       auto_kernel:
         description: "Auto Use Latest Kernel"
         required: false
