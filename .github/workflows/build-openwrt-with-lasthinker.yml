@@ -63,7 +63,9 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc 2>/dev/null
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
+          sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* adoptopenjdk* mysql* php* mongodb* dotnet* moby* snapd* || true
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install $(curl -fsSL https://raw.githubusercontent.com/lasthinker/amlogic-s9xxx-armbian/main/compile-kernel/tools/script/ubuntu2204-make-openwrt-depends)
           sudo -E apt-get -qq autoremove --purge
@@ -85,27 +87,27 @@ jobs:
         run: |
           [[ -e "${FEEDS_CONF}" ]] && cp -f ${FEEDS_CONF} openwrt/feeds.conf.default
           chmod +x ${DIY_P1_SH}
-          cd openwrt
+          cd openwrt/
           ${GITHUB_WORKSPACE}/${DIY_P1_SH}
 
       - name: Update Feeds
-        run: cd openwrt && ./scripts/feeds update -a
+        run: cd openwrt/ && ./scripts/feeds update -a
 
       - name: Install Feeds
-        run: cd openwrt && ./scripts/feeds install -a
+        run: cd openwrt/ && ./scripts/feeds install -a
 
       - name: Load Custom Configuration
         run: |
           [[ -d "files" ]] && mv -f files openwrt/files
           [[ -e "${CONFIG_FILE}" ]] && cp -f ${CONFIG_FILE} openwrt/.config
           chmod +x ${DIY_P2_SH}
-          cd openwrt
+          cd openwrt/
           ${GITHUB_WORKSPACE}/${DIY_P2_SH}
 
       - name: Download Package
         id: package
         run: |
-          cd openwrt
+          cd openwrt/
           make defconfig
           make download -j8
           find dl -size -1024c -exec ls -l {} \;
@@ -114,7 +116,7 @@ jobs:
       - name: Compile the Firmware
         id: compile
         run: |
-          cd openwrt
+          cd openwrt/
           echo -e "$(nproc) thread compile"
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
           echo "build_tag=openwrt_aml_lasthinker_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
@@ -129,7 +131,14 @@ jobs:
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Build OpenWrt Firmware
+      - name: Clean Up Server Space
+        if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
+        run: |
+          cd openwrt/
+          rm -rf $(ls . | grep -v "^bin$" | xargs) 2>/dev/null
+          df -hT ${PWD}
+
+      - name: Build OpenWrt firmware
         if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
         uses: lasthinker/amlogic-s9xxx-openwrt@main
         with:
