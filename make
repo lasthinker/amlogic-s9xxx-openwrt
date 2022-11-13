@@ -691,7 +691,7 @@ loop_make() {
 }
 
 # Show welcome message
-echo -e "${INFO} Welcome to tools for making Amlogic s9xxx OpenWrt! \n"
+echo -e "${STEPS} Welcome to tools for making Amlogic s9xxx OpenWrt! \n"
 [[ "$(id -u)" == "0" ]] || error_msg "please run this script as root: [ sudo ./${0} ]"
 # Show server start information
 echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
@@ -714,6 +714,7 @@ echo -e "${INFO} Kernel List: [ $(echo ${build_kernel[*]} | tr "\n" " ") ] \n"
 loop_make
 #
 # Show server end information
-echo -e "${INFO} Server space usage after compilation: \n$(df -hT ${make_path}) \n"
+echo -e "${STEPS} Server space usage after compilation: \n$(df -hT ${make_path}) \n"
+echo -e "${SUCCESS} All process completed successfully."
 # All process completed
 wait
