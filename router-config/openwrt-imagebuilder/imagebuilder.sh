@@ -33,9 +33,11 @@
 #
 # Set default parameters
 make_path="${PWD}"
-imagebuilder_path="${make_path}/openwrt"
+openwrt_dir="openwrt"
+imagebuilder_path="${make_path}/${openwrt_dir}"
 custom_files_path="${make_path}/router-config/openwrt-imagebuilder/files"
-config_file_path="${make_path}/router-config/openwrt-imagebuilder/.config"
+custom_config_file="${make_path}/router-config/openwrt-imagebuilder/config"
+
 # Set default parameters
 STEPS="[\033[95m STEPS \033[0m]"
 INFO="[\033[94m INFO \033[0m]"
@@ -53,7 +55,9 @@ error_msg() {
 
 # Downloading OpenWrt ImageBuilder
 download_imagebuilder() {
+    cd ${make_path}
     echo -e "${STEPS} Start downloading OpenWrt files..."
+
     # Downloading imagebuilder files
     # Download example: https://downloads.openwrt.org/releases/21.02.3/targets/armvirt/64/openwrt-imagebuilder-21.02.3-armvirt-64.Linux-x86_64.tar.xz
     download_file="https://downloads.openwrt.org/releases/${rebuild_branch}/targets/armvirt/64/openwrt-imagebuilder-${rebuild_branch}-armvirt-64.Linux-x86_64.tar.xz"
@@ -62,7 +66,7 @@ download_imagebuilder() {
 
     # Unzip and change the directory name
     tar -xJf openwrt-imagebuilder-* && sync && rm -f openwrt-imagebuilder-*.tar.xz
-    mv -f openwrt-imagebuilder-* openwrt
+    mv -f openwrt-imagebuilder-* ${openwrt_dir}
 
     sync && sleep 3
     echo -e "${INFO} [ ${make_path} ] directory status: $(ls . -l 2>/dev/null)"
@@ -71,17 +75,19 @@ download_imagebuilder() {
 # Adjust related files in the ImageBuilder directory
 adjust_settings() {
     cd ${imagebuilder_path}
+    echo -e "${STEPS} Start adjusting .config file settings..."
 
     # For .config file
-    [[ -s ".config" ]] && {
-        echo -e "${STEPS} Start adjusting .config file settings..."
+    if [[ -s ".config" ]]; then
         # Root filesystem archives
         sed -i "s|CONFIG_TARGET_ROOTFS_CPIOGZ=.*|# CONFIG_TARGET_ROOTFS_CPIOGZ is not set|g" .config
         # Root filesystem images
         sed -i "s|CONFIG_TARGET_ROOTFS_EXT4FS=.*|# CONFIG_TARGET_ROOTFS_EXT4FS is not set|g" .config
         sed -i "s|CONFIG_TARGET_ROOTFS_SQUASHFS=.*|# CONFIG_TARGET_ROOTFS_SQUASHFS is not set|g" .config
         sed -i "s|CONFIG_TARGET_IMAGES_GZIP=.*|# CONFIG_TARGET_IMAGES_GZIP is not set|g" .config
-    }
+    else
+        error_msg "There is no .config file in the [ ${download_file} ]"
+    fi
 
     # For other files
     # ......
@@ -95,8 +101,8 @@ adjust_settings() {
 # If one does not exist and place your custom ipk within this directory.
 custom_packages() {
     cd ${imagebuilder_path}
-
     echo -e "${STEPS} Start adding custom packages..."
+
     # Create a [ packages ] directory
     [[ -d "packages" ]] || mkdir packages
 
@@ -117,14 +123,16 @@ custom_packages() {
 
 # Add custom packages, lib, theme, app and etc.
 custom_config() {
+    cd ${imagebuilder_path}
     echo -e "${STEPS} Start adding custom config..."
 
     config_list=""
-    [[ -s "${config_file_path}" ]] && {
-        config_list="$(cat ${config_file_path} 2>/dev/null | grep -E "^CONFIG_PACKAGE_.*=y" | sed -e 's/CONFIG_PACKAGE_//g' -e 's/=y//g' -e 's/[ ][ ]*//g' | tr '\n' ' ')"
-    }
-
-    echo -e "${INFO} Custom config list: \n$(echo "${config_list}" | tr ' ' '\n')"
+    if [[ -s "${custom_config_file}" ]]; then
+        config_list="$(cat ${custom_config_file} 2>/dev/null | grep -E "^CONFIG_PACKAGE_.*=y" | sed -e 's/CONFIG_PACKAGE_//g' -e 's/=y//g' -e 's/[ ][ ]*//g' | tr '\n' ' ')"
+        echo -e "${INFO} Custom config list: \n$(echo "${config_list}" | tr ' ' '\n')"
+    else
+        echo -e "${INFO} No custom config was added."
+    fi
 }
 
 # Add custom files
@@ -132,24 +140,27 @@ custom_config() {
 # The [ files ] directory should be placed in the Image Builder root directory where you issue the make command.
 custom_files() {
     cd ${imagebuilder_path}
+    echo -e "${STEPS} Start adding custom files..."
 
-    [[ -d "${custom_files_path}" ]] && {
-        echo -e "${STEPS} Start adding custom files..."
+    if [[ -d "${custom_files_path}" ]]; then
         # Copy custom files
         [[ -d "files" ]] || mkdir -p files
         cp -rf ${custom_files_path}/* files
 
         sync && sleep 3
         echo -e "${INFO} [ files ] directory status: $(ls files -l 2>/dev/null)"
-    }
+    else
+        echo -e "${INFO} No customized files were added."
+    fi
 }
 
 # Rebuild OpenWrt firmware
 rebuild_firmware() {
     cd ${imagebuilder_path}
-
     echo -e "${STEPS} Start building OpenWrt with Image Builder..."
+
     # Selecting default packages, lib, theme, app and etc.
+    # sorting by https://build.moz.one
     my_packages="\
         acpid attr base-files bash bc bind-server blkid block-mount blockd bsdtar  \
         btrfs-progs busybox bzip2 cgi-io chattr comgt comgt-ncm containerd coremark  \
