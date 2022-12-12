@@ -34,6 +34,9 @@ echo "DISTRIB_SOURCECODE='lasthinker'" >>package/base-files/files/etc/openwrt_re
 # Add luci-app-amlogic
 svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
 
+# Add luci-app-adguardhome
+svn co https://github.com/rufengsuixing/luci-app-adguardhome/trunk package/luci-app-adguardhome
+
 # Fix runc version error
 # rm -rf ./feeds/packages/utils/runc/Makefile
 # svn export https://github.com/openwrt/packages/trunk/utils/runc/Makefile ./feeds/packages/utils/runc/Makefile
