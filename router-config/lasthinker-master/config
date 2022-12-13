@@ -4,15 +4,6 @@
 # Source code repository: https://github.com/lasthinker/lede / Branch: master
 #==================================================================================
 
-# Kernel build options:
-CONFIG_KERNEL_IPV6=y
-
-# Package build options:
-CONFIG_IPV6=y
-
-# Extra packages:
-CONFIG_PACKAGE_ipv6helper=y
-
 # Build Firmware:
 CONFIG_TARGET_armvirt=y
 CONFIG_TARGET_armvirt_64=y
