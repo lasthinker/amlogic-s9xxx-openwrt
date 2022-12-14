@@ -34,6 +34,12 @@ echo "DISTRIB_SOURCECODE='lasthinker'" >>package/base-files/files/etc/openwrt_re
 # Add luci-app-amlogic
 svn co https://github.com/lasthinker/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
 
+# Add luci-app-mosdns
+rm -rf feeds/luci/applications/luci-app-mosdns
+rm -rf feeds/packages/ net/mosdns
+svn co https://github.com/QiuSimons/openwrt-mos/trunk/mosdns package/mosdns
+svn co https://github.com/QiuSimons/openwrt-mos/trunk/luci-app-mosdns package/luci-app-mosdns
+
 # Fix runc version error
 # rm -rf ./feeds/packages/utils/runc/Makefile
 # svn export https://github.com/openwrt/packages/trunk/utils/runc/Makefile ./feeds/packages/utils/runc/Makefile
