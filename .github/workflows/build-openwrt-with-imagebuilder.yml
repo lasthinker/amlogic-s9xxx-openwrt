@@ -14,10 +14,10 @@ on:
       branch:
         description: "Select Releases Branch"
         required: false
-        default: "22.03.2"
+        default: "22.03.3"
         type: choice
         options:
-          - 22.03.2
+          - 22.03.3
           - 21.02.5
           - 19.07.10
           - 18.06.9
@@ -46,6 +46,10 @@ on:
         required: false
         default: true
         type: boolean
+      kernel_repo:
+        description: "Set Kernel Repository"
+        required: false
+        default: "https://github.com/lasthinker/kernel/tree/main/pub"
       openwrt_size:
         description: "Set ROOTFS Size(Unit: MiB)."
         required: false
@@ -105,7 +109,9 @@ jobs:
           openwrt_board: ${{ inputs.openwrt_board }}
           openwrt_kernel: ${{ inputs.openwrt_kernel }}
           auto_kernel: ${{ inputs.auto_kernel }}
+          kernel_repo: ${{ inputs.kernel_repo }}
           openwrt_size: ${{ inputs.openwrt_size }}
+          gh_token: ${{ secrets.GH_TOKEN }}
 
       - name: Upload OpenWrt Firmware to Release
         uses: ncipollo/release-action@main

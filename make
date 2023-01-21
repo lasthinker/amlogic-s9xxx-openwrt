@@ -72,13 +72,14 @@ script_repo="${script_repo//tree\/main/trunk}"
 
 # Kernel files download repository
 kernel_repo="https://github.com/lasthinker/kernel/tree/main/pub"
-# Convert kernel library address to svn format
-kernel_repo="${kernel_repo//tree\/main/trunk}"
-version_branch="stable"
-build_kernel=("5.15.75")
+# Set the kernel directory used by default
+kernel_dir="stable"
+# Set the list of kernels used by default
+kernel_list=("5.15.75")
+# Set to automatically use the latest kernel
 auto_kernel="true"
 
-# Set supported board
+# Set the list of supported openwrt board
 build_openwrt=(
     "s905x"
 )
@@ -87,6 +88,9 @@ build_openwrt=(
 SKIP_MB="4"
 BOOT_MB="256"
 ROOT_MB="1024"
+
+# Get gh_token for api.github.com
+gh_token=""
 
 # Set font color
 STEPS="[\033[95m STEPS \033[0m]"
@@ -117,7 +121,7 @@ init_var() {
     echo -e "${STEPS} Start Initializing Variables..."
 
     # If it is followed by [ : ], it means that the option requires a parameter value
-    get_all_ver="$(getopt "b:k:a:v:s:" "${@}")"
+    get_all_ver="$(getopt "b:k:a:v:r:s:g:" "${@}")"
 
     while [[ -n "${1}" ]]; do
         case "${1}" in
@@ -139,7 +143,7 @@ init_var() {
             if [[ -n "${2}" ]]; then
                 oldIFS=$IFS
                 IFS=_
-                build_kernel=(${2})
+                kernel_list=(${2})
                 IFS=$oldIFS
                 shift
             else
@@ -156,10 +160,18 @@ init_var() {
             ;;
         -v | --VersionBranch)
             if [[ -n "${2}" ]]; then
-                version_branch="${2}"
+                kernel_dir="${2}"
                 shift
             else
                 error_msg "Invalid -v parameter [ ${2} ]!"
+            fi
+            ;;
+        -r | --KernelRepository)
+            if [[ -n "${2}" ]]; then
+                kernel_repo="${2}"
+                shift
+            else
+                error_msg "Invalid -r parameter [ ${2} ]!"
             fi
             ;;
         -s | --Size)
@@ -170,12 +182,23 @@ init_var() {
                 error_msg "Invalid -s parameter [ ${2} ]!"
             fi
             ;;
+        -g | --gh_token)
+            if [[ -n "${2}" ]]; then
+                gh_token="${2}"
+                shift
+            else
+                error_msg "Invalid -g parameter [ ${2} ]!"
+            fi
+            ;;
         *)
             error_msg "Invalid option [ ${1} ]!"
             ;;
         esac
         shift
     done
+
+    # Convert kernel library address to svn format
+    kernel_repo="${kernel_repo//tree\/main/trunk}"
 }
 
 find_openwrt() {
@@ -230,12 +253,12 @@ download_depends() {
         svn co ${depends_repo}/armbian-files/platform-files/amlogic/rootfs/usr/share/openvfd ${openvfd_path} --force
     fi
 
+    # Download armbian firmware file
+    svn co ${firmware_repo} ${firmware_path} --force
+
     # Download balethirq related files
     svn export ${depends_repo}/armbian-files/common-files/usr/sbin/balethirq.pl ${common_files}/rootfs/usr/sbin --force
     svn export ${depends_repo}/armbian-files/common-files/etc/balance_irq ${common_files}/rootfs/etc --force
-
-    # Download armbian firmware file
-    svn export ${firmware_repo} ${firmware_path} --force
 
     # Download install/update and other related files
     svn export ${script_repo} ${common_files}/rootfs/usr/sbin --force
@@ -248,32 +271,42 @@ query_version() {
     # Convert kernel library address to API format
     server_kernel_url="${kernel_repo#*com\/}"
     server_kernel_url="${server_kernel_url//trunk/contents}"
-    server_kernel_url="https://api.github.com/repos/${server_kernel_url}/${version_branch}"
+    server_kernel_url="https://api.github.com/repos/${server_kernel_url}/${kernel_dir}"
 
     # Set empty array
     tmp_arr_kernels=()
 
     # Query the latest kernel in a loop
     i=1
-    for KERNEL_VAR in ${build_kernel[*]}; do
-        echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${KERNEL_VAR} ]"
+    for k in ${kernel_list[*]}; do
+        echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${k} ]"
+
         # Identify the kernel mainline
-        MAIN_LINE="$(echo ${KERNEL_VAR} | awk -F '.' '{print $1"."$2}')"
-        # Check the version on the server (e.g LATEST_VERSION="75")
-        LATEST_VERSION="$(curl -s "${server_kernel_url}" | grep "name" | grep -oE "${MAIN_LINE}\.[0-9]+" | sed -e "s/${MAIN_LINE}\.//g" | sort -n | sed -n '$p')"
-        if [[ "${?}" -eq "0" && ! -z "${LATEST_VERSION}" ]]; then
+        MAIN_LINE="$(echo ${k} | awk -F '.' '{print $1"."$2}')"
+
+        # Check the version on the server (e.g LATEST_VERSION="125")
+        if [[ -n "${gh_token}" ]]; then
+            LATEST_VERSION="$(curl --header "authorization: Bearer ${gh_token}" -s "${server_kernel_url}" | grep "name" | grep -oE "${MAIN_LINE}\.[0-9]+" | sed -e "s/${MAIN_LINE}\.//g" | sort -n | sed -n '$p')"
+            query_api="Authenticated user request"
+        else
+            LATEST_VERSION="$(curl -s "${server_kernel_url}" | grep "name" | grep -oE "${MAIN_LINE}\.[0-9]+" | sed -e "s/${MAIN_LINE}\.//g" | sort -n | sed -n '$p')"
+            query_api="Unauthenticated user request"
+        fi
+
+        if [[ "${?}" -eq "0" && -n "${LATEST_VERSION}" ]]; then
             tmp_arr_kernels[${i}]="${MAIN_LINE}.${LATEST_VERSION}"
         else
-            tmp_arr_kernels[${i}]="${KERNEL_VAR}"
+            tmp_arr_kernels[${i}]="${k}"
         fi
-        echo -e "${INFO} (${i}) [ ${tmp_arr_kernels[$i]} ] is latest kernel. \n"
+
+        echo -e "${INFO} (${i}) [ ${tmp_arr_kernels[$i]} ] is latest kernel (${query_api}). \n"
 
         let i++
     done
 
     # Reset the kernel array to the latest kernel version
-    unset build_kernel
-    build_kernel="${tmp_arr_kernels[*]}"
+    unset kernel_list
+    kernel_list="${tmp_arr_kernels[*]}"
 }
 
 download_kernel() {
@@ -281,12 +314,12 @@ download_kernel() {
     echo -e "${STEPS} Start downloading the kernel files..."
 
     i=1
-    for KERNEL_VAR in ${build_kernel[*]}; do
-        if [[ ! -d "${kernel_path}/${KERNEL_VAR}" ]]; then
-            echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${kernel_repo/trunk/tree\/main}/${version_branch}/${KERNEL_VAR} ]"
-            svn export ${kernel_repo}/${version_branch}/${KERNEL_VAR} ${kernel_path}/${KERNEL_VAR} --force
+    for k in ${kernel_list[*]}; do
+        if [[ ! -d "${kernel_path}/${k}" ]]; then
+            echo -e "${INFO} (${i}) [ ${k} ] Kernel loading from [ ${kernel_repo/trunk/tree\/main}/${kernel_dir}/${k} ]"
+            svn export ${kernel_repo}/${kernel_dir}/${k} ${kernel_path}/${k} --force
         else
-            echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel is in the local directory."
+            echo -e "${INFO} (${i}) [ ${k} ] Kernel is in the local directory."
         fi
 
         let i++
@@ -365,12 +398,11 @@ extract_openwrt() {
     mkdir -p ${tag_bootfs} ${tag_rootfs}
 
     # Mount the openwrt image
-    if ! mount ${loop_new}p1 ${tag_bootfs}; then
-        error_msg "mount ${loop_new}p1 failed!"
-    fi
-    if ! mount ${loop_new}p2 ${tag_rootfs}; then
-        error_msg "mount ${loop_new}p2 failed!"
-    fi
+    mount -t vfat -o discard ${loop_new}p1 ${tag_bootfs}
+    [[ "${?}" -eq "0" ]] || error_msg "mount ${loop_new}p1 failed!"
+
+    mount -t btrfs -o discard,compress=zstd:6 ${loop_new}p2 ${tag_rootfs}
+    [[ "${?}" -eq "0" ]] || error_msg "mount ${loop_new}p2 failed!"
 
     # Create snapshot directory
     btrfs subvolume create ${tag_rootfs}/etc >/dev/null 2>&1
@@ -625,7 +657,7 @@ clean_tmp() {
     cd ${out_path}
 
     # Compress the openwrt image file
-    pigz -9f *.img && sync
+    pigz -f *.img && sync
 
     cd ${make_path}
 
@@ -641,7 +673,7 @@ loop_make() {
     for b in ${build_openwrt[*]}; do
 
         i="1"
-        for k in ${build_kernel[*]}; do
+        for k in ${kernel_list[*]}; do
             {
                 echo -n "(${j}.${i}) Start making OpenWrt [ ${b} - ${k} ]. "
 
@@ -689,7 +721,6 @@ echo -e "${STEPS} Welcome to tools for making Amlogic s9xxx OpenWrt! \n"
 echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
 echo -e "${INFO} Server memory usage: \n$(free -h) \n"
 echo -e "${INFO} Server space usage before starting to compile: \n$(df -hT ${make_path}) \n"
-echo -e "${INFO} Setting parameters: [ ${@} ] \n"
 #
 # Initialize variables and download the kernel
 init_var "${@}"
@@ -701,8 +732,8 @@ download_depends
 [[ "${auto_kernel}" == "true" ]] && query_version
 download_kernel
 #
-echo -e "${INFO} OpenWrt Board List: [ $(echo ${build_openwrt[*]} | tr "\n" " ") ]"
-echo -e "${INFO} Kernel List: [ $(echo ${build_kernel[*]} | tr "\n" " ") ] \n"
+echo -e "${INFO} OpenWrt list: [ $(echo ${build_openwrt[*]} | tr "\n" " ") ]"
+echo -e "${INFO} Kernel  list: [ $(echo ${kernel_list[*]} | tr "\n" " ") ] \n"
 #
 # Loop to make OpenWrt firmware
 loop_make

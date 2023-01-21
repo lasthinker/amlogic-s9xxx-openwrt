@@ -35,6 +35,10 @@ on:
         required: false
         default: true
         type: boolean
+      kernel_repo:
+        description: "Set the kernel repository"
+        required: false
+        default: "https://github.com/lasthinker/kernel/tree/main/pub"
       openwrt_size:
         description: "Set ROOTFS Size(Unit: MiB)."
         required: false
@@ -81,7 +85,7 @@ jobs:
         if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
           df -hT ${PWD}
-          git clone --depth 1 ${REPO_URL} -b ${REPO_BRANCH} openwrt
+          git clone -q --single-branch --depth 1 ${REPO_URL} -b ${REPO_BRANCH} openwrt
           ln -sf /workdir/openwrt ${GITHUB_WORKSPACE}/openwrt
 
       - name: Load Custom Feeds
@@ -147,7 +151,9 @@ jobs:
           openwrt_board: ${{ inputs.openwrt_board }}
           openwrt_kernel: ${{ inputs.openwrt_kernel }}
           auto_kernel: ${{ inputs.auto_kernel }}
+          kernel_repo: ${{ inputs.kernel_repo }}
           openwrt_size: ${{ inputs.openwrt_size }}
+          gh_token: ${{ secrets.GH_TOKEN }}
 
       - name: Upload OpenWrt Firmware to Release
         uses: ncipollo/release-action@main
