@@ -42,6 +42,14 @@ on:
         options:
           - all
           - dtbs
+      kernel_toolchain:
+        description: "Select Compilation Toolchain"
+        required: false
+        default: "clang"
+        type: choice
+        options:
+          - clang
+          - gcc
       kernel_sign:
         description: "Set Kernel Custom Signature"
         required: false
@@ -68,7 +76,9 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc 2>/dev/null
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
+          sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* adoptopenjdk* mongodb* dotnet* moby* snapd* || true
           sudo -E apt-get -qq update -y
           sudo -E apt-get -qq full-upgrade -y
           sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/lasthinker/amlogic-s9xxx-armbian/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
@@ -86,6 +96,7 @@ jobs:
           kernel_version: ${{ inputs.kernel_version }}
           kernel_auto: ${{ inputs.kernel_auto }}
           kernel_package: ${{ inputs.kernel_package }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
           kernel_sign: ${{ inputs.kernel_sign }}
           kernel_config: ${{ inputs.kernel_config }}
 
@@ -98,5 +109,6 @@ jobs:
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
-            Kernel Can Be Used to Compile Armbian and OpenWrt.
-            Kernel Source Code Comes From: ${{ github.event.inputs.kernel_source }}
+            The Kernel Can Be Used To Compile Armbian And OpenWrt.
+            The Kernel Source Code Comes From: ${{ inputs.kernel_source }}
+            The Kernel Compilation Toolchain: ${{ inputs.kernel_toolchain }}
