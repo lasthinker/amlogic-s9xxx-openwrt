@@ -1,7 +1,7 @@
 !.gitignore
-/amlogic-s9xxx/amlogic-dtb
-/amlogic-s9xxx/amlogic-kernel
-/amlogic-s9xxx/amlogic-u-boot
+/make-openwrt/openwrt-files/platform-files
+/make-openwrt/kernel
+/make-openwrt/u-boot
 /openwrt
 /openwrt-armvirt
 /out
