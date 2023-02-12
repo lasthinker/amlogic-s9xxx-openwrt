@@ -47,10 +47,10 @@ on:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: openwrt-21.02
-  FEEDS_CONF: router-config/immortalwrt/feeds.conf.default
-  CONFIG_FILE: router-config/immortalwrt/config
-  DIY_P1_SH: router-config/immortalwrt/diy-part1.sh
-  DIY_P2_SH: router-config/immortalwrt/diy-part2.sh
+  FEEDS_CONF: config-openwrt/immortalwrt/feeds.conf.default
+  CONFIG_FILE: config-openwrt/immortalwrt/config
+  DIY_P1_SH: config-openwrt/immortalwrt/diy-part1.sh
+  DIY_P2_SH: config-openwrt/immortalwrt/diy-part2.sh
   TZ: Asia/Jakarta
 
 jobs:
@@ -125,7 +125,7 @@ jobs:
           cd openwrt/
           echo -e "$(nproc) thread compile"
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
-          echo "build_tag=openwrt_aml_immortalwrt_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
+          echo "build_tag=openwrt_immortalwrt_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Upload OpenWrt Firmware to Release

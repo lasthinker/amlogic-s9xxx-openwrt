@@ -47,10 +47,10 @@ on:
 env:
   REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: master
-  FEEDS_CONF: router-config/openwrt-master/feeds.conf.default
-  CONFIG_FILE: router-config/openwrt-master/config
-  DIY_P1_SH: router-config/openwrt-master/diy-part1.sh
-  DIY_P2_SH: router-config/openwrt-master/diy-part2.sh
+  FEEDS_CONF: config-openwrt/openwrt-master/feeds.conf.default
+  CONFIG_FILE: config-openwrt/openwrt-master/config
+  DIY_P1_SH: config-openwrt/openwrt-master/diy-part1.sh
+  DIY_P2_SH: config-openwrt/openwrt-master/diy-part2.sh
   TZ: Asia/Jakarta
 
 jobs:
@@ -124,7 +124,7 @@ jobs:
           cd openwrt/
           echo -e "$(nproc) thread compile"
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
-          echo "build_tag=openwrt_aml_official_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
+          echo "build_tag=openwrt_official_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Upload OpenWrt Firmware to Release
