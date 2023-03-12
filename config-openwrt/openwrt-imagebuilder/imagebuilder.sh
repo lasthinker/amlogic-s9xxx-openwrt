@@ -16,8 +16,8 @@
 # Instructions:  Download OpenWrt firmware from the official OpenWrt,
 #                Use Image Builder to add packages, lib, theme, app and etc.
 #
-# Command: ./router-config/openwrt-imagebuilder/imagebuilder.sh <branch>
-#          ./router-config/openwrt-imagebuilder/imagebuilder.sh 21.02.3
+# Command: ./config-openwrt/openwrt-imagebuilder/imagebuilder.sh <branch>
+#          ./config-openwrt/openwrt-imagebuilder/imagebuilder.sh 21.02.3
 #
 #======================================== Functions list ========================================
 #
@@ -35,8 +35,8 @@
 make_path="${PWD}"
 openwrt_dir="openwrt"
 imagebuilder_path="${make_path}/${openwrt_dir}"
-custom_files_path="${make_path}/router-config/openwrt-imagebuilder/files"
-custom_config_file="${make_path}/router-config/openwrt-imagebuilder/config"
+custom_files_path="${make_path}/config-openwrt/openwrt-imagebuilder/files"
+custom_config_file="${make_path}/config-openwrt/openwrt-imagebuilder/config"
 
 # Set default parameters
 STEPS="[\033[95m STEPS \033[0m]"
@@ -111,8 +111,9 @@ custom_packages() {
     #
     amlogic_file="luci-app-amlogic"
     amlogic_file_down="$(curl -s ${amlogic_api} | grep "browser_download_url" | grep -oE "https.*${amlogic_name}.*.ipk" | head -n 1)"
-    wget -q ${amlogic_file_down} -O packages/${amlogic_file_down##*/}
-    [[ "${?}" -eq "0" ]] && echo -e "${INFO} The [ ${amlogic_file} ] is downloaded successfully."
+    wget ${amlogic_file_down} -q -P packages
+    [[ "${?}" -eq "0" ]] || error_msg "[ ${amlogic_file} ] download failed!"
+    echo -e "${INFO} The [ ${amlogic_file} ] is downloaded successfully."
     #
     # Download other luci-app-xxx
     # ......
@@ -162,19 +163,19 @@ rebuild_firmware() {
     # Selecting default packages, lib, theme, app and etc.
     # sorting by https://build.moz.one
     my_packages="\
-        acpid attr base-files bash bc bind-server blkid block-mount blockd bsdtar  \
-        btrfs-progs busybox bzip2 cgi-io chattr comgt comgt-ncm containerd coremark  \
-        coreutils coreutils-base64 coreutils-nohup coreutils-truncate curl docker  \
-        docker-compose dockerd dosfstools dumpe2fs e2freefrag e2fsprogs exfat-mkfs  \
-        f2fs-tools f2fsck fdisk gawk getopt gzip hostapd-common iconv iw iwinfo jq jshn  \
-        kmod-brcmfmac kmod-brcmutil kmod-cfg80211 kmod-mac80211 libjson-script  \
-        liblucihttp liblucihttp-lua libnetwork losetup lsattr lsblk lscpu mkf2fs  \
-        mount-utils openssl-util parted perl-http-date perlbase-file perlbase-getopt  \
-        perlbase-time perlbase-unicode perlbase-utf8 pigz ppp ppp-mod-pppoe  \
-        proto-bonding pv rename resize2fs runc subversion-client subversion-libs tar  \
-        tini ttyd tune2fs uclient-fetch uhttpd uhttpd-mod-ubus unzip uqmi usb-modeswitch  \
-        uuidgen wget-ssl whereis which wpa-cli wpad-basic wwan xfs-fsck xfs-mkfs xz  \
-        xz-utils ziptool zoneinfo-asia zoneinfo-core zstd  \
+        acpid attr base-files bash bc bind-server blkid block-mount blockd bsdtar \
+        btrfs-progs busybox bzip2 cgi-io chattr comgt comgt-ncm containerd coremark \
+        coreutils coreutils-base64 coreutils-nohup coreutils-truncate curl docker \
+        docker-compose dockerd dosfstools dumpe2fs e2freefrag e2fsprogs exfat-mkfs \
+        f2fs-tools f2fsck fdisk gawk getopt gzip hostapd-common iconv iw iwinfo jq jshn \
+        kmod-brcmfmac kmod-brcmutil kmod-cfg80211 kmod-mac80211 libjson-script \
+        liblucihttp liblucihttp-lua libnetwork losetup lsattr lsblk lscpu mkf2fs \
+        mount-utils openssl-util parted perl-http-date perlbase-file perlbase-getopt \
+        perlbase-time perlbase-unicode perlbase-utf8 pigz ppp ppp-mod-pppoe \
+        proto-bonding pv rename resize2fs runc subversion-client subversion-libs tar \
+        tini ttyd tune2fs uclient-fetch uhttpd uhttpd-mod-ubus unzip uqmi usb-modeswitch \
+        uuidgen wget-ssl whereis which wpa-cli wpad-basic wwan xfs-fsck xfs-mkfs xz \
+        xz-utils ziptool zoneinfo-asia zoneinfo-core zstd \
         \
         luci luci-base luci-compat luci-i18n-base-en luci-lib-base  \
         luci-lib-docker luci-lib-ip luci-lib-ipkg luci-lib-jsonc luci-lib-nixio  \

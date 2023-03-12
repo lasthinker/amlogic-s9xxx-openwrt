@@ -11,10 +11,10 @@
 # Copyright (C) 2022- https://github.com/lasthinker/amlogic-s9xxx-openwrt
 #
 # Function          : Command
-# Default           : openwrt-led
-# One-key to open   : openwrt-led <boxid>
-# One-key to stop   : openwrt-led 0
-# Update config     : openwrt-led -u
+# Default           : openwrt-openvfd
+# One-key to open   : openwrt-openvfd <boxid>
+# One-key to stop   : openwrt-openvfd 0
+# Update config     : openwrt-openvfd -u
 #
 #============================= Functions list =============================
 #
