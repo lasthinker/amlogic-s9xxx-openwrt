@@ -15,7 +15,6 @@ on:
         default: "lasthinker"
         type: choice
         options:
-          - kernel.org
           - lasthinker
       kernel_version:
         description: "Select Kernel Version"
